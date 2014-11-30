@@ -9,6 +9,7 @@ PUBLIC_IF = "eth0"  # network card to apply the QoS to
 LAN_IF = "eth1"  # network card to apply the QoS to
 UPLINK = 5000  # upload in kbits/s
 DOWNLINK = 100000  # download in kbits/s
+DEBUG = True
 
 #################
 # END_CONSTANTS #
@@ -18,29 +19,35 @@ import os
 import subprocess
 import sys
 
+import tools
+tools.DEBUG = DEBUG
+
 
 def apply_qos():
+    tools.qdisc_add(PUBLIC_IF, "htb", handle="1:", default=999)
+    tools.class_add(PUBLIC_IF, parent="1:0", classid="1:1", rate=UPLINK,
+                    ceil=UPLINK)
     return
 
 
 def reset_qos():
     print("Removing iptables rules...")
-    subprocess.call(["iptables", "-t", "mangle", "-F"])
-    subprocess.call(["iptables", "-t", "mangle", "-X"])
+    tools.launch_command(["iptables", "-t", "mangle", "-F"])
+    tools.launch_command(["iptables", "-t", "mangle", "-X"])
     print("Removing tc rules")
     for interface in (PUBLIC_IF, LAN_IF):
-        subprocess.call(["tc", "qdisc", "del", "dev", interface, "root",
-                         "handle", "1"])
+        tools.launch_command(["tc", "qdisc", "del", "dev", interface, "root",
+                              "handle", "1"])
     return
 
 
 def show_qos():
     print("\n\t QDiscs details\n\t================\n")
     for interface in (PUBLIC_IF, LAN_IF):
-        subprocess.call(["tc", "-d", "qdisc", "show", "dev", interface])
+        tools.launch_command(["tc", "-d", "qdisc", "show", "dev", interface])
     print("\n\t QDiscs stats\n\t==============\n")
     for interface in (PUBLIC_IF, LAN_IF):
-        subprocess.call(["tc", "-s", "qdisc", "show", "dev", interface])
+        tools.launch_command(["tc", "-s", "qdisc", "show", "dev", interface])
 
 
 def print_help():
