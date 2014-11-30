@@ -24,20 +24,32 @@ def apply_qos():
 
 
 def reset_qos():
+    print("Removing iptables rules...")
+    subprocess.call(["iptables", "-t", "mangle", "-F"])
+    subprocess.call(["iptables", "-t", "mangle", "-X"])
+    print("Removing tc rules")
+    for interface in (PUBLIC_IF, LAN_IF):
+        subprocess.call(["tc", "qdisc", "del", "dev", interface, "root",
+                         "handle", "1"])
     return
 
 
 def show_qos():
-    return
+    print("\n\t QDiscs details\n\t================\n")
+    for interface in (PUBLIC_IF, LAN_IF):
+        subprocess.call(["tc", "-d", "qdisc", "show", "dev", interface])
+    print("\n\t QDiscs stats\n\t==============\n")
+    for interface in (PUBLIC_IF, LAN_IF):
+        subprocess.call(["tc", "-s", "qdisc", "show", "dev", interface])
 
 
 def print_help():
     print("Script to set QoS rules\n")
     print("python3 qos.py [option]")
     print("[option]: ")
-    print("    start: set QoS rules")
-    print("    stop: remove all QoS rules")
-    print("    show: show QoS rules")
+    print("\tstart: set QoS rules")
+    print("\tstop: remove all QoS rules")
+    print("\tshow: show QoS rules")
     exit()
 
 
