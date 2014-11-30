@@ -9,7 +9,7 @@ PUBLIC_IF = "eth0"  # network card to apply the QoS to
 LAN_IF = "eth1"  # network card to apply the QoS to
 UPLINK = 5000  # upload in kbits/s
 DOWNLINK = 100000  # download in kbits/s
-DEBUG = True
+DEBUG = False
 
 #################
 # END_CONSTANTS #
@@ -24,9 +24,8 @@ tools.DEBUG = DEBUG
 
 
 def apply_qos():
-    tools.qdisc_add(PUBLIC_IF, "htb", handle="1:", default=999)
-    tools.class_add(PUBLIC_IF, parent="1:0", classid="1:1", rate=UPLINK,
-                    ceil=UPLINK)
+    # Clean old rules
+    reset_qos()
     return
 
 
@@ -36,18 +35,17 @@ def reset_qos():
     tools.launch_command(["iptables", "-t", "mangle", "-X"])
     print("Removing tc rules")
     for interface in (PUBLIC_IF, LAN_IF):
-        tools.launch_command(["tc", "qdisc", "del", "dev", interface, "root",
-                              "handle", "1"])
+        tools.qdisc_del(interface, "htb")
     return
 
 
 def show_qos():
     print("\n\t QDiscs details\n\t================\n")
     for interface in (PUBLIC_IF, LAN_IF):
-        tools.launch_command(["tc", "-d", "qdisc", "show", "dev", interface])
+        tools.qdisc_show("details", interface)
     print("\n\t QDiscs stats\n\t==============\n")
     for interface in (PUBLIC_IF, LAN_IF):
-        tools.launch_command(["tc", "-s", "qdisc", "show", "dev", interface])
+        tools.qdisc_show("stats", interface)
 
 
 def print_help():
