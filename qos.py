@@ -6,10 +6,15 @@ import os
 import subprocess
 import sys
 
+try:
+    from config import PUBLIC_IF, LAN_IF
+except ImportError:
+    print("No existing configuration. Please copy config.py.default as "
+          "config.py and optionaly configure it for your setup.")
+    exit(1)
+
 import rules
 import tools
-
-from config import PUBLIC_IF, LAN_IF
 
 
 def apply_qos():

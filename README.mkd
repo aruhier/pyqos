@@ -1,0 +1,42 @@
+QoS with TC and Python
+======================
+
+When you are setting a QoS with TC with a shellscript, the syntax is not easy
+to read. This tool tries to give a better way to interact with TC.
+
+Dependencies
+------------
+  * python 2.7 or 3.4 (it certainly works with prior versions, just not tested)
+
+Configuration
+-------------
+
+Copy the default configuration file `config.py.default` as `config.py`.
+<b>Please do not modify or remove `config.py.default` if you cloned this
+repository.  Always do your modifications in config.py.</b> Then modify
+`config.py` for your setup (documentation is inside).
+
+Usage
+-----
+
+QoS rules are is the `rules` folder, where there are some examples
+corresponding to my actual setup. The source file `tools.py` contains all the
+useful functions for rules, which are documented with docstrings.
+
+A function `apply_rules()` has been created in `rules/__init__.py` to apply
+all the rules once.
+
+When your rules are created, just run `qos.py` :
+```
+python3 qos.py [option]
+[option]:
+    start: set QoS rules
+    stop: remove all QoS rules
+    show: show QoS rules
+```
+
+Licence
+-------
+
+Tool under the BSD licence. Do not hesitate to report bugs, ask me some
+questions or do some pull request if you want to !
