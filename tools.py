@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Author: Anthony Ruhier
 
 import subprocess
 from config import DEBUG

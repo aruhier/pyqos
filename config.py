@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Author: Anthony Ruhier
 
 # INTERFACES
 PUBLIC_IF = "eth0"  # network card which has the public IP
