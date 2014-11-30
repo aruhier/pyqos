@@ -42,7 +42,7 @@ def tc_qdisc(action, interface, algorithm, handle=None, parent=None, *args,
     launch_command(command)
 
 
-def qdisc_add(interface, algorithm, handle, parent=None, *args,
+def qdisc_add(interface, handle, algorithm, parent=None, *args,
               **kwargs):
     """
     Add qdisc
