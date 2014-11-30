@@ -1,26 +1,12 @@
 #!/usr/bin/python
 # Set QoS rules
 
-#############
-# CONSTANTS #
-#############
-
-PUBLIC_IF = "eth0"  # network card to apply the QoS to
-LAN_IF = "eth1"  # network card to apply the QoS to
-UPLINK = 5000  # upload in kbits/s
-DOWNLINK = 100000  # download in kbits/s
-DEBUG = False
-
-#################
-# END_CONSTANTS #
-#################
-
 import os
 import subprocess
 import sys
-
 import tools
-tools.DEBUG = DEBUG
+
+from config import PUBLIC_IF, LAN_IF
 
 
 def apply_qos():

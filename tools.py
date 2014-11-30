@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 import subprocess
-
-DEBUG = False
+from config import DEBUG
 
 
 def launch_command(command):
