@@ -4,6 +4,8 @@
 import os
 import subprocess
 import sys
+
+import rules
 import tools
 
 from config import PUBLIC_IF, LAN_IF
@@ -14,8 +16,7 @@ def apply_qos():
     reset_qos()
     # Setting new rules
     print("Setting new rules")
-    from rules import upload
-    upload.apply_qos()
+    rules.apply_qos()
 
 
 def reset_qos():
