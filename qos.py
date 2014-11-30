@@ -12,13 +12,13 @@ from config import PUBLIC_IF, LAN_IF
 def apply_qos():
     # Clean old rules
     reset_qos()
-    return
+    # Setting new rules
+    print("Setting new rules")
+    from rules import upload
+    upload.apply_qos()
 
 
 def reset_qos():
-    print("Removing iptables rules...")
-    tools.launch_command(["iptables", "-t", "mangle", "-F"])
-    tools.launch_command(["iptables", "-t", "mangle", "-X"])
     print("Removing tc rules")
     for interface in (PUBLIC_IF, LAN_IF):
         tools.qdisc_del(interface, "htb")

@@ -4,7 +4,7 @@ import subprocess
 from config import DEBUG
 
 
-def launch_command(command):
+def launch_command(command, stderr=None):
     """
     If the script is launched in debug mode, just prints the command.
     Otherwise, starts it with subprocess.call()
@@ -12,7 +12,7 @@ def launch_command(command):
     if DEBUG:
         print(" ".join(command))
     else:
-        subprocess.call(command)
+        subprocess.call(command, stderr=stderr)
 
 
 def tc_qdisc(action, interface, algorithm, handle=None, parent=None, *args,
@@ -39,7 +39,12 @@ def tc_qdisc(action, interface, algorithm, handle=None, parent=None, *args,
     command.append(algorithm)
     for i, j in kwargs.items():
         command += [str(i), str(j)]
-    launch_command(command)
+
+    # Avoid error when cleaning rules if no one exists
+    if action == "delete":
+        launch_command(command, stderr=subprocess.DEVNULL)
+    else:
+        launch_command(command)
 
 
 def qdisc_add(interface, handle, algorithm, parent=None, *args,
@@ -125,8 +130,8 @@ def tc_class(action, interface, parent, classid=None, algorithm="htb",
             if key in kwargs.keys() and str(kwargs[key]).isnumeric():
                 kwargs[key] = str(kwargs[key]) + "kbit"
         for key in ("burst", "cburst"):
-            if key in kwargs.keys() and kwargs[key].isnumeric():
-                kwargs[key] = kwargs[key] + "k"
+            if key in kwargs.keys() and str(kwargs[key]).isnumeric():
+                kwargs[key] = str(kwargs[key]) + "k"
     for i, j in kwargs.items():
         command += [str(i), str(j)]
     launch_command(command)
@@ -202,7 +207,7 @@ def tc_filter(action, interface, prio, handle, flowid, parent=None,
     :param handle: filter id
     :param flowid: target class
     :param parent: parent class/qdisc (default: None)
-    :param protocol: protocol to filter (default: ip)
+    :param protocol: protocol to filter. Use ipv6 for IPv6 (default: ip)
     """
     command = ["tc", "filter", action, "dev", interface]
     if parent is not None:
