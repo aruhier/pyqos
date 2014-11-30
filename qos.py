@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Author: Anthony Ruhier
 # Set QoS rules
 
 import os
@@ -35,7 +36,7 @@ def show_qos():
 
 
 def print_help():
-    print("Script to set QoS rules\n")
+    print("Script to set, show or delete QoS rules with TC\n")
     print("python3 qos.py [option]")
     print("[option]: ")
     print("\tstart: set QoS rules")

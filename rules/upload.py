@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Author: Anthony Ruhier
 # QoS for upload
 
 import tools
