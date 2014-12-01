@@ -128,11 +128,17 @@ def tc_class(action, interface, parent, classid=None, algorithm="htb",
     command.append(algorithm)
     if algorithm == "htb":
         for key in ("rate", "ceil"):
-            if key in kwargs.keys() and str(kwargs[key]).isnumeric():
-                kwargs[key] = str(kwargs[key]) + "kbit"
+            if key in kwargs.keys():
+                try:
+                    kwargs[key] = str(int(kwargs[key])) + "kbit"
+                except:
+                    pass
         for key in ("burst", "cburst"):
-            if key in kwargs.keys() and str(kwargs[key]).isnumeric():
-                kwargs[key] = str(kwargs[key]) + "k"
+            if key in kwargs.keys():
+                try:
+                    kwargs[key] = str(int(kwargs[key])) + "k"
+                except:
+                    pass
     for i, j in kwargs.items():
         command += [str(i), str(j)]
     launch_command(command)
