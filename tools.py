@@ -106,6 +106,16 @@ def qdisc_show(show_format=None, interface=None):
     launch_command(command)
 
 
+def get_child_qdiscid(classid):
+    """
+    Return the id to handle for a child qdisc. By convention, it will take his
+    parent class id
+
+    :param classid: parent class id
+    """
+    return classid[classid.find(":") + 1:]
+
+
 def tc_class(action, interface, parent, classid=None, algorithm="htb",
              **kwargs):
     """
