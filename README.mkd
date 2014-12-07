@@ -35,6 +35,15 @@ python3 qos.py [option]
     show: show QoS rules
 ```
 
+Readings about tc
+-----------------
+
+ * http://wiki.linuxwall.info/doku.php/en:ressources:dossiers:networking:traffic_control
+   : General explanations about QoS and tc
+ * http://luxik.cdi.cz/~devik/qos/htb/manual/userg.htm : Details about htb
+ * http://joekane.eu/cisco-rate-limit-burst-explained/ : Details about burst
+   and cburst and how to define it.
+
 Licence
 -------
 
