@@ -66,7 +66,7 @@ def qdisc_add(interface, handle, algorithm, parent=None, *args,
     :param handle: handle parameter for tc
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return tc_qdisc("add", interface, algorithm, handle, parent, *args,
+    return tc_qdisc(interface, "add", algorithm, handle, parent, *args,
                     **kwargs)
 
 
@@ -84,7 +84,7 @@ def qdisc_del(interface, algorithm, handle=None, parent=None, *args,
     :param handle: handle parameter for tc (default: None)
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return tc_qdisc("delete", interface, algorithm, handle, parent, *args,
+    return tc_qdisc(interface, "delete", algorithm, handle, parent, *args,
                     **kwargs)
 
 
@@ -177,7 +177,7 @@ def class_add(interface, parent, classid, algorithm="htb", **kwargs):
     :param classid: id for the current class (default: None)
     :param algorithm: algorithm used for this class (default: htb)
     """
-    return tc_class("add", interface, parent, classid, algorithm, **kwargs)
+    return tc_class(interface, "add", parent, classid, algorithm, **kwargs)
 
 
 @multiple_interfaces
@@ -195,7 +195,7 @@ def class_del(interface, parent, classid=None, algorithm="htb", **kwargs):
     :param classid: id for the current class (default: None)
     :param algorithm: algorithm used for this class (default: htb)
     """
-    return tc_class("delete", interface, parent, classid, algorithm, **kwargs)
+    return tc_class(interface, "delete", parent, classid, algorithm, **kwargs)
 
 
 @multiple_interfaces
@@ -264,7 +264,7 @@ def filter_add(interface, parent, prio, handle, flowid, protocol="ip",
     :param flowid: target class
     :param protocol: protocol to filter (default: ip)
     """
-    return tc_filter("add", interface, prio, handle, flowid, parent, protocol,
+    return tc_filter(interface, "add", prio, handle, flowid, parent, protocol,
                      **kwargs)
 
 
@@ -284,7 +284,7 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol="ip",
     :param parent: parent class/qdisc (default: None)
     :param protocol: protocol to filter (default: ip)
     """
-    return tc_filter("delete", interface, prio, handle, flowid, parent,
+    return tc_filter(interface, "delete", prio, handle, flowid, parent,
                      protocol, **kwargs)
 
 

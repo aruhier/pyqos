@@ -11,9 +11,9 @@ def multiple_interfaces(f):
     execute the function f for each interface
     """
     def repeat_for_each_interface(interface, *args, **kwargs):
-        if interface is not str:
+        if type(interface) is not str:
             for i in interface:
-                f(i, *args, **kwargs)
+                repeat_for_each_interface(i, *args, **kwargs)
         else:
-            f(*args, **kwargs)
+            f(interface, *args, **kwargs)
     return repeat_for_each_interface
