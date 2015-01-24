@@ -249,7 +249,7 @@ def tc_filter(interface, action, prio, handle, flowid, parent=None,
 
 
 @multiple_interfaces
-def filter_add(interface, parent, prio, handle, flowid, protocol="ip",
+def filter_add(interface, parent, prio, handle, flowid, protocol=None,
                **kwargs):
     """
     Add filter
@@ -264,8 +264,14 @@ def filter_add(interface, parent, prio, handle, flowid, protocol="ip",
     :param flowid: target class
     :param protocol: protocol to filter (default: ip)
     """
-    return tc_filter(interface, "add", prio, handle, flowid, parent, protocol,
-                     **kwargs)
+    if protocol is None:
+        tc_filter(interface, "add", prio, handle, flowid, parent, "ipv6",
+                  **kwargs)
+        tc_filter(interface, "add", prio, handle, flowid, parent, "ip",
+                  **kwargs)
+    else:
+        tc_filter(interface, "add", prio, handle, flowid, parent, "protocol",
+                  **kwargs)
 
 
 @multiple_interfaces
@@ -284,8 +290,14 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol="ip",
     :param parent: parent class/qdisc (default: None)
     :param protocol: protocol to filter (default: ip)
     """
-    return tc_filter(interface, "delete", prio, handle, flowid, parent,
-                     protocol, **kwargs)
+    if protocol is None:
+        tc_filter(interface, "add", prio, handle, flowid, parent, "ipv6",
+                  **kwargs)
+        tc_filter(interface, "add", prio, handle, flowid, parent, "ip",
+                  **kwargs)
+    else:
+        tc_filter(interface, "add", prio, handle, flowid, parent, "protocol",
+                  **kwargs)
 
 
 @multiple_interfaces
