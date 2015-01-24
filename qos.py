@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 try:
-    from config import PUBLIC_IF, LAN_IF
+    from config import INTERFACES
 except ImportError:
     print("No existing configuration. Please copy config.py.default as "
           "config.py and optionaly configure it for your setup.")
@@ -27,18 +27,16 @@ def apply_qos():
 
 def reset_qos():
     print("Removing tc rules")
-    for interface in (PUBLIC_IF, LAN_IF):
-        tools.qdisc_del(interface, "htb", stderr=subprocess.DEVNULL)
+    tools.qdisc_del(INTERFACES.values(), "htb", stderr=subprocess.DEVNULL)
     return
 
 
 def show_qos():
+    interfaces = INTERFACES.values()
     print("\n\t QDiscs details\n\t================\n")
-    for interface in (PUBLIC_IF, LAN_IF):
-        tools.qdisc_show("details", interface)
+    tools.qdisc_show(interfaces, "details")
     print("\n\t QDiscs stats\n\t==============\n")
-    for interface in (PUBLIC_IF, LAN_IF):
-        tools.qdisc_show("stats", interface)
+    tools.qdisc_show(interfaces, "details")
 
 
 def print_help():

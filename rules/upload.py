@@ -3,7 +3,9 @@
 # QoS for upload
 
 import tools
-from config import PUBLIC_IF, UPLOAD
+from config import INTERFACES, UPLOAD
+
+PUBLIC_IF = INTERFACES["PUBLIC_IF"]
 
 
 def interactive_class():

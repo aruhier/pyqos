@@ -1,11 +1,18 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
-# INTERFACES
-PUBLIC_IF = "eth0"  # network card which has the public IP
-LAN_IF = "eth1"  # network card which has the "LAN" IP
+# Interfaces
+INTERFACES = {
+    "PUBLIC_IF": "eth0",  # network card which has the public IP
+    "LAN_IF": "eth1",  # network card which has the "LAN" IP
+    "GROUP_EXEMPLE": ["tap0", "tap1"],  # example of a group of interfaces
+}
 
-# BANDWIDTH
+# For the backport compatibility with old rules
+PUBLIC_IF = INTERFACES["PUBLIC_IF"]
+LAN_IF = INTERFACES["LAN_IF"]
+
+# Bandwidth
 UPLOAD = 5000  # upload in kbits/s
 DOWNLOAD = 100000  # download in kbits/s
 
