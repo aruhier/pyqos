@@ -44,8 +44,8 @@ Readings about tc
  * http://joekane.eu/cisco-rate-limit-burst-explained/ : Details about burst
    and cburst and how to define it.
 
-Licence
+License
 -------
 
-Tool under the BSD licence. Do not hesitate to report bugs, ask me some
+Tool under the BSD license. Do not hesitate to report bugs, ask me some
 questions or do some pull request if you want to !
