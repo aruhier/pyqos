@@ -47,7 +47,8 @@ def tc_qdisc(interface, action, algorithm, handle=None, parent=None,
         command += ["handle", str(handle)]
     command.append(algorithm)
     for i, j in kwargs.items():
-        command += [str(i), str(j)]
+        if j is not None:
+            command += [str(i), str(j)]
 
     launch_command(command, stderr)
 
@@ -158,7 +159,8 @@ def tc_class(interface, action, parent, classid=None, algorithm="htb",
                 except:
                     pass
     for i, j in kwargs.items():
-        command += [str(i), str(j)]
+        if j is not None:
+            command += [str(i), str(j)]
     launch_command(command)
 
 
@@ -251,7 +253,8 @@ def tc_filter(interface, action, prio, handle, flowid, parent=None,
     command += ["protocol", protocol, "prio", str(prio), "handle", str(handle),
                 "fw", "flowid", flowid]
     for i, j in kwargs.items():
-        command += [str(i), str(j)]
+        if j is not None:
+            command += [str(i), str(j)]
     launch_command(command)
 
 
