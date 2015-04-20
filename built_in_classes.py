@@ -24,24 +24,37 @@ class Basic_tc_class():
     burst = None
     #: cburst
     cburst = None
+    #: quantum (optional)
+    quantum = None
     #: priority
     prio = None
-    #: r2q, to influe on the quantum (optional)
-    r2q = None
     #: children class which will be attached to this class
     children = None
 
     def __init__(self, classid=None, rate=None, ceil=None,
-                 burst=None, cburst=None, prio=None, r2q=None, children=None,
-                 *args, **kwargs):
+                 burst=None, cburst=None, quantum=None, prio=None,
+                 children=None, *args, **kwargs):
         self.classid = classid if classid is not None else self.classid
         self.rate = rate if rate is not None else self.rate
         self.ceil = ceil if ceil is not None else self.ceil
         self.burst = burst if burst is not None else self.burst
         self.cburst = cburst if cburst is not None else self.cburst
+        self.quantum = quantum if quantum is not None else self.quantum
         self.prio = prio if prio is not None else self.prio
-        self.r2q = r2q if r2q is not None else self.r2q
         self.children = children if children is not None else []
+
+    def _check_quantum(self):
+        """
+        Check if the quantum is not too high
+
+        Kernel warnings that quantum is too high if it's superior to 18 000
+        """
+        if self.rate is None or self._interface is None:
+            return
+
+        # Adding 14 to the MTU to handle the ethernet overhead
+        mtu = tools.get_mtu(self._interface) + 14
+        self.quantum = mtu if self.quantum is None else self.quantum
 
     def add_child(self, class_child):
         """
@@ -73,7 +86,7 @@ class Basic_tc_class():
         tools.class_add(self._interface, parent=self._parent,
                         classid=self.classid, rate=self.rate,
                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
-                        prio=self.prio)
+                        prio=self.prio, quantum=self.quantum)
 
     def apply_qos(self):
         """
@@ -82,6 +95,7 @@ class Basic_tc_class():
         The function is recursive, so it will apply the qos of all children
         too.
         """
+        self._check_quantum()
         self._add_class()
         for child in self.children:
             child.apply_qos()
@@ -117,13 +131,16 @@ class Root_tc_class(Basic_tc_class):
     qdisc_prefix_id = None
     #: default mark to catch
     default = None
+    #: r2q, to influe on the quantum (optional)
+    r2q = None
 
     def __init__(self, interface=None, algorithm="htb", qdisc_prefix_id="1:",
-                 default=None, *args, **kwargs):
+                 default=None, r2q=None, *args, **kwargs):
         self._interface = interface
         self.algorithm = algorithm
         self.qdisc_prefix_id = qdisc_prefix_id
         self.default = default
+        self.r2q = r2q if r2q is not None else self.r2q
         self._parent = str(self.qdisc_prefix_id) + "0"
         self._root = self._parent
         self.classid = str(self.qdisc_prefix_id) + "1"
@@ -169,6 +186,7 @@ class _Basic_filter_class(Basic_tc_class):
         The function is recursive, so it will apply the qos of all children
         too.
         """
+        self._check_quantum()
         self._add_class()
         self._add_qdisc()
         self._add_filter()

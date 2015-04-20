@@ -1,9 +1,27 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
+from fcntl import ioctl
+import socket
 import subprocess
+import struct
 from decorators import multiple_interfaces
 from config import DEBUG
+
+
+def get_mtu(ifname):
+    """
+    Use socket ioctl call to get MTU size of an interface
+    """
+    SIOCGIFMTU = 0x8921
+    s = socket.socket(type=socket.SOCK_DGRAM)
+    ifr = ifname + '\x00'*(32-len(ifname))
+    try:
+        ifs = ioctl(s, SIOCGIFMTU, ifr)
+        mtu = struct.unpack('<H', ifs[16:18])[0]
+    except Exception as e:
+        print("Cannot find the MTU of", ifname, ". Will use 1500")
+    return mtu
 
 
 def launch_command(command, stderr=None):

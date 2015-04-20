@@ -32,7 +32,7 @@ def reset_qos():
 
 
 def show_qos():
-    interfaces = INTERFACES.values()
+    interfaces = [interface["name"] for interface in INTERFACES.values()]
     print("\n\t QDiscs details\n\t================\n")
     tools.qdisc_show(interfaces, "details")
     print("\n\t QDiscs stats\n\t==============\n")
