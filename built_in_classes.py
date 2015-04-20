@@ -26,18 +26,21 @@ class Basic_tc_class():
     cburst = None
     #: priority
     prio = None
+    #: r2q, to influe on the quantum (optional)
+    r2q = None
     #: children class which will be attached to this class
     children = None
 
     def __init__(self, classid=None, rate=None, ceil=None,
-                 burst=None, cburst=None, prio=None, children=None, *args,
-                 **kwargs):
+                 burst=None, cburst=None, prio=None, r2q=None, children=None,
+                 *args, **kwargs):
         self.classid = classid if classid is not None else self.classid
         self.rate = rate if rate is not None else self.rate
         self.ceil = ceil if ceil is not None else self.ceil
         self.burst = burst if burst is not None else self.burst
         self.cburst = cburst if cburst is not None else self.cburst
         self.prio = prio if prio is not None else self.prio
+        self.r2q = r2q if r2q is not None else self.r2q
         self.children = children if children is not None else []
 
     def add_child(self, class_child):
@@ -131,7 +134,7 @@ class Root_tc_class(Basic_tc_class):
         Add the root qdisc
         """
         tools.qdisc_add(self._interface, self.qdisc_prefix_id, self.algorithm,
-                        default=self.default)
+                        default=self.default, r2q=self.r2q)
 
     def apply_qos(self):
         self._add_qdisc()
