@@ -88,17 +88,18 @@ class Basic_tc_class():
                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
                         prio=self.prio, quantum=self.quantum)
 
-    def apply_qos(self):
+    def apply_qos(self, auto_quantum=True):
         """
         Apply qos with current attributes
 
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        self._check_quantum()
+        if auto_quantum:
+            self._check_quantum()
         self._add_class()
         for child in self.children:
-            child.apply_qos()
+            child.apply_qos(auto_quantum=auto_quantum)
 
     def set_parent_root(self, parent=None, root=None):
         """
@@ -153,9 +154,13 @@ class Root_tc_class(Basic_tc_class):
         tools.qdisc_add(self._interface, self.qdisc_prefix_id, self.algorithm,
                         default=self.default, r2q=self.r2q)
 
-    def apply_qos(self):
+    def apply_qos(self, auto_quantum=True):
+        """
+        If the r2q has been defined, the quantum will not be defined
+        automatiqually for children.
+        """
         self._add_qdisc()
-        return super().apply_qos()
+        return super().apply_qos(auto_quantum=(self.r2q is None))
 
 
 class _Basic_filter_class(Basic_tc_class):
@@ -179,19 +184,20 @@ class _Basic_filter_class(Basic_tc_class):
     def _add_qdisc(self):
         raise NotImplemented
 
-    def apply_qos(self):
+    def apply_qos(self, auto_quantum=True):
         """
         Apply qos with current attributes
 
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        self._check_quantum()
+        if auto_quantum:
+            self._check_quantum()
         self._add_class()
         self._add_qdisc()
         self._add_filter()
         for child in self.children:
-            child.apply_qos()
+            child.apply_qos(auto_quantum=auto_quantum)
 
 
 class SFQ_class(_Basic_filter_class):
