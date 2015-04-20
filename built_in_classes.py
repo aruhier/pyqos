@@ -200,6 +200,43 @@ class _Basic_filter_class(Basic_tc_class):
             child.apply_qos(auto_quantum=auto_quantum)
 
 
+class FQ_codel_class(_Basic_filter_class):
+    """
+    Basic class with a fq_codel qdisc builtin
+    """
+    #: when this limit is reached, incoming packets are dropped
+    limit = None
+    #: is the number of flows into which the incoming packets are classified
+    flows = None
+    #: is the acceptable minimum standing/persistent queue delay
+    target = None
+    #: is used to ensure that the measured minimum delay does not become too
+    #  stale
+    interval = None
+    #: is the number of bytes used as 'deficit' in the fair queuing algorithm
+    codel_quantum = None
+
+    def __init__(self, limit=None, flows=None, target=None, interval=None,
+                 codel_quantum=None, *args, **kwargs):
+        self.limit = limit
+        self.flows = flows
+        self.target = target
+        self.interval = interval
+        self.codel_quantum = codel_quantum
+        super().__init__(*args, **kwargs)
+
+    def _add_qdisc(self):
+        mtu = tools.get_mtu(self._interface)
+        if self.codel_quantum is None:
+            self.codel_quantum = tools.get_mtu(self._interface)
+        tools.qdisc_add(self._interface, parent=self.classid,
+                        handle=tools.get_child_qdiscid(self.classid),
+                        algorithm="fq_codel", limit=self.limit,
+                        flows=self.flows, target=self.target,
+                        interval=self.interval,
+                        quantum=self.codel_quantum)
+
+
 class SFQ_class(_Basic_filter_class):
     """
     Basic class with a SFQ qdisc builtin
