@@ -1,20 +1,39 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
-# Interfaces
+# INTERFACES
 INTERFACES = {
-    "PUBLIC_IF": "eth0",  # network card which has the public IP
-    "LAN_IF": "eth1",  # network card which has the "LAN" IP
-    "GROUP_EXEMPLE": ["tap0", "tap1"],  # example of a group of interfaces
+    "public_if": {  # network card which has the public IP
+        "name": "eth0",  # real interface name
+        "if_speed": 1048576,  # interface speed, in kbits (here, 1Gbps)
+        "speed": 5000,  # Upload speed, for trafic to the Internet
+    },
+
+    "lan_if": {  # network card for the LAN subnets
+        "name": "eth1",  # real interface name
+        "if_speed": 1048576,  # interface speed, in kbits (here, 1Gbps)
+        "speed": 100000,  # Download speed, for trafic from the Internet
+    },
+
+    "GROUP_EXEMPLE": {  # example of a group of interfaces
+        "tap0": {
+            "name": "tap0",  # real interface name
+            "speed": 10000,  # Speed for trafic from the Internet
+        },
+        "tap1": {
+            "name": "tap1",  # real interface name
+        },
+    },
 }
 
-# For the backport compatibility with old rules
-PUBLIC_IF = INTERFACES["PUBLIC_IF"]
-LAN_IF = INTERFACES["LAN_IF"]
+# If we want to get the speed of tap1 equaled to 40% of the lan_if speed
+INTERFACES["GROUP_EXEMPLE"]["tap1"]["speed"] = (
+    INTERFACES["public_if"]["speed"] * 0.4)
 
-# Bandwidth
-UPLOAD = 5000  # upload in kbits/s
-DOWNLOAD = 100000  # download in kbits/s
+
+# To be backport compatible
+UPLOAD = INTERFACES["public_if"]["speed"]
+DOWNLOAD = INTERFACES["lan_if"]["speed"]
 
 # If enabled, this script will not execute any command, just prints it
 DEBUG = False
