@@ -19,12 +19,16 @@ repository.  Always do your modifications in config.py.</b> Then modify
 Usage
 -----
 
-QoS rules are is the `rules` folder, where there are some examples
-corresponding to my actual setup. The source file `tools.py` contains all the
-useful functions for rules, which are documented with docstrings.
+QoS rules are is the `rules` folder. It doesn't exist from scratch, but you can
+copy the `rules.example` as `rules`, where there are some examples
+corresponding to my actual setup.
 
-A function `apply_rules()` has been created in `rules/__init__.py` to apply
-all the rules once.
+The source file `tools.py` contains all the useful functions for rules, which
+are documented with docstrings. `built_in_classes` contains different classes
+you can inherit. Take a look to the examples to see how it works.
+
+A function `apply_rules()` has been created in `rules.example/__init__.py` to
+apply all the rules once.
 
 When your rules are created, just run `qos.py` :
 ```
