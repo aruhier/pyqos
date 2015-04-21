@@ -17,6 +17,16 @@ import rules
 import tools
 
 
+def get_ifnames(interfaces_lst=INTERFACES):
+    if_names = set()
+    for interface in interfaces_lst.values():
+        if "name" in interface.keys():
+            if_names.add(interface["name"])
+        else:
+            if_names.update(get_ifnames(interfaces_lst=interface))
+    return if_names
+
+
 def apply_qos():
     # Clean old rules
     reset_qos()
@@ -27,16 +37,17 @@ def apply_qos():
 
 def reset_qos():
     print("Removing tc rules")
-    tools.qdisc_del(INTERFACES.values(), "htb", stderr=subprocess.DEVNULL)
+    ifnames = get_ifnames()
+    tools.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
     return
 
 
 def show_qos():
-    interfaces = [interface["name"] for interface in INTERFACES.values()]
+    ifnames = get_ifnames()
     print("\n\t QDiscs details\n\t================\n")
-    tools.qdisc_show(interfaces, "details")
+    tools.qdisc_show(ifnames, "details")
     print("\n\t QDiscs stats\n\t==============\n")
-    tools.qdisc_show(interfaces, "details")
+    tools.qdisc_show(ifnames, "details")
 
 
 def print_help():
