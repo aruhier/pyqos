@@ -4,7 +4,7 @@
 import tools
 
 
-class Basic_tc_class():
+class BasicHTBClass():
     """
     Basic class
     """
@@ -122,7 +122,7 @@ class Basic_tc_class():
         self._interface = interface
 
 
-class Root_tc_class(Basic_tc_class):
+class RootHTBClass(BasicHTBClass):
     """
     Root tc class, directly attached to the interface
     """
@@ -145,7 +145,7 @@ class Root_tc_class(Basic_tc_class):
         self._parent = str(self.qdisc_prefix_id) + "0"
         self._root = self._parent
         self.classid = str(self.qdisc_prefix_id) + "1"
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _add_qdisc(self):
         """
@@ -163,7 +163,7 @@ class Root_tc_class(Basic_tc_class):
         return super().apply_qos(auto_quantum=(self.r2q is None))
 
 
-class _Basic_filter_class(Basic_tc_class):
+class _BasicFilterHTBClass(BasicHTBClass):
     """
     Basic class with filtering
     """
@@ -200,9 +200,9 @@ class _Basic_filter_class(Basic_tc_class):
             child.apply_qos(auto_quantum=auto_quantum)
 
 
-class FQ_codel_class(_Basic_filter_class):
+class FQCodelClass(_BasicFilterHTBClass):
     """
-    Basic class with a fq_codel qdisc builtin
+    HTB class with a fq_codel qdisc builtin
     """
     #: when this limit is reached, incoming packets are dropped
     limit = None
@@ -226,7 +226,6 @@ class FQ_codel_class(_Basic_filter_class):
         super().__init__(*args, **kwargs)
 
     def _add_qdisc(self):
-        mtu = tools.get_mtu(self._interface)
         if self.codel_quantum is None:
             self.codel_quantum = tools.get_mtu(self._interface)
         tools.qdisc_add(self._interface, parent=self.classid,
@@ -237,9 +236,9 @@ class FQ_codel_class(_Basic_filter_class):
                         quantum=self.codel_quantum)
 
 
-class SFQ_class(_Basic_filter_class):
+class SFQClass(_BasicFilterHTBClass):
     """
-    Basic class with a SFQ qdisc builtin
+    HTB class with a SFQ qdisc builtin
     """
     #: perturb parameter for sfq
     perturb = None
@@ -254,7 +253,7 @@ class SFQ_class(_Basic_filter_class):
                         algorithm="sfq", perturb=self.perturb)
 
 
-class PFIFO_class(_Basic_filter_class):
+class PFIFOClass(_BasicFilterHTBClass):
     """
     Basic filtering class with a PFIFO qdisc built in
     """

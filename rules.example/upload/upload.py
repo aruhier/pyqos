@@ -4,12 +4,12 @@
 
 from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
-from built_in_classes import PFIFO_class, SFQ_class
+from built_in_classes import PFIFOClass, SFQClass
 
 UPLOAD = INTERFACES["public_if"]["speed"]
 
 
-class Interactive(PFIFO_class):
+class Interactive(PFIFOClass):
     """
     Interactive Class, for low latency, high priority packets such as VOIP and
     DNS.
@@ -25,7 +25,7 @@ class Interactive(PFIFO_class):
     cburst = cburst_formula(rate, burst)
 
 
-class TCP_ack(SFQ_class):
+class TCPACK(SFQClass):
     """
     Class for TCP ACK.
 
@@ -41,7 +41,7 @@ class TCP_ack(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class SSH(SFQ_class):
+class SSH(SFQClass):
     """
     Class for SSH connections.
 
@@ -58,7 +58,7 @@ class SSH(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class HTTP(SFQ_class):
+class HTTP(SFQClass):
     """
     Class for HTTP/HTTPS connections.
     """
@@ -71,7 +71,7 @@ class HTTP(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class Default(SFQ_class):
+class Default(SFQClass):
     """
     Default class
     """
