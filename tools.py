@@ -21,6 +21,7 @@ def get_mtu(ifname):
         mtu = struct.unpack('<H', ifs[16:18])[0]
     except Exception as e:
         print("Cannot find the MTU of", ifname, ". Will use 1500")
+        mtu = 1500
     return mtu
 
 
