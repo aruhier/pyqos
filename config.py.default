@@ -34,3 +34,6 @@ INTERFACES["GROUP_EXEMPLE"]["tap1"]["speed"] = (
 # To be backport compatible
 UPLOAD = INTERFACES["public_if"]["speed"]
 DOWNLOAD = INTERFACES["lan_if"]["speed"]
+
+# If enabled, this script will not execute any command, just prints it
+DEBUG = False

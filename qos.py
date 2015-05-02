@@ -15,6 +15,11 @@ except ImportError:
           "config.py and optionaly configure it for your setup.")
     exit(1)
 
+try:
+    from config import DEBUG
+except ImportError :
+    DEBUG = False
+
 import rules
 import tools
 
@@ -54,7 +59,7 @@ def show_qos():
 
 def set_debug(level):
 
-    if level:
+    if level or DEBUG:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO

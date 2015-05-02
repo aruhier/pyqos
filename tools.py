@@ -5,10 +5,8 @@ from fcntl import ioctl
 import socket
 import subprocess
 import struct
-from decorators import multiple_interfaces
-
 import logging
-
+from decorators import multiple_interfaces
 
 def get_mtu(ifname):
     """
