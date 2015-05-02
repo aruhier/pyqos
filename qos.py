@@ -63,7 +63,7 @@ def print_help():
 # Need to be root
 if os.geteuid() != 0:
     print("You need to be root to run this script. Relaunching with sudo...\n")
-    subprocess.call(["sudo", ] + sys.argv)
+    subprocess.call(["sudo", sys.executable] + sys.argv)
     exit()
 
 if len(sys.argv) != 2:
