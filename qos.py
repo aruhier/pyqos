@@ -4,6 +4,7 @@
 
 import os
 import subprocess
+import argparse
 import sys
 
 try:
@@ -49,30 +50,32 @@ def show_qos():
     print("\n\t QDiscs stats\n\t==============\n")
     tools.qdisc_show(ifnames, "details")
 
+if __name__ == '__main__':
 
-def print_help():
-    print("Script to set, show or delete QoS rules with TC\n")
-    print("python3 qos.py [option]")
-    print("[option]: ")
-    print("\tstart: set QoS rules")
-    print("\tstop: remove all QoS rules")
-    print("\tshow: show QoS rules")
-    exit()
+    # Need to be root
+    if os.geteuid() != 0:
+        print("You need to be root to run this script. Relaunching with sudo...\n")
+        subprocess.call(["sudo", sys.executable] + sys.argv)
+        exit()
 
+    # Set all arguments possible for this script
+    parser = argparse.ArgumentParser(description="Script to set, show or delete QoS rules with TC")
+    sp = parser.add_subparsers()
+    sp_start = sp.add_parser("start", help="set QoS rules")
+    sp_stop = sp.add_parser("stop", help="Remove all QoS rules")
+    sp_show = sp.add_parser("show", help="Show QoS rules")
 
-# Need to be root
-if os.geteuid() != 0:
-    print("You need to be root to run this script. Relaunching with sudo...\n")
-    subprocess.call(["sudo", sys.executable] + sys.argv)
-    exit()
+    # Set function to call for each options
+    sp_start.set_defaults(func=apply_qos)
+    sp_stop.set_defaults(func=reset_qos)
+    sp_show.set_defaults(func=show_qos)
 
-if len(sys.argv) != 2:
-    print_help()
-elif sys.argv[1] == "start":
-    apply_qos()
-elif sys.argv[1] == "stop":
-    reset_qos()
-elif sys.argv[1] == "show":
-    show_qos()
-else:
-    print_help()
+    # If no argument provided show help
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # Parse argument and execute right function
+    args = parser.parse_args()
+    args.func()
+
