@@ -55,13 +55,13 @@ def show_qos():
 def set_debug(level):
 
     if level:
-        debug = logging.DEBUG
+        log_level = logging.DEBUG
     else:
-        debug = logging.INFO
+        log_level = logging.INFO
 
     logging.basicConfig(stream=sys.stderr, \
             format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) ", \
-            level=debug)
+            level=log_level)
 
 if __name__ == '__main__':
 
