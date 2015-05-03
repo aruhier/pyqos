@@ -5,9 +5,8 @@ from fcntl import ioctl
 import socket
 import subprocess
 import struct
+import logging
 from decorators import multiple_interfaces
-from config import DEBUG
-
 
 def get_mtu(ifname):
     """
@@ -20,7 +19,7 @@ def get_mtu(ifname):
         ifs = ioctl(s, SIOCGIFMTU, ifr)
         mtu = struct.unpack('<H', ifs[16:18])[0]
     except Exception as e:
-        print("Cannot find the MTU of", ifname, ". Will use 1500")
+        logging.warning("Cannot find the MTU of %s. Will use 1500", ifname)
         mtu = 1500
     return mtu
 
@@ -30,15 +29,14 @@ def launch_command(command, stderr=None):
     If the script is launched in debug mode, just prints the command.
     Otherwise, starts it with subprocess.call()
     """
-    if DEBUG:
-        print(" ".join(command))
+    if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+        logging.debug(" ".join(command))
     else:
         r = subprocess.call(command, stderr=stderr)
         if r != 0:
             if stderr == subprocess.DEVNULL:
                 return
-            print("Error: ", file=stderr)
-            print(" ".join(command), file=stderr)
+            logging.error(" ".join(command))
 
 
 @multiple_interfaces

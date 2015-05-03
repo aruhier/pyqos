@@ -6,6 +6,7 @@ import os
 import subprocess
 import argparse
 import sys
+import logging
 
 try:
     from config import INTERFACES
@@ -13,6 +14,11 @@ except ImportError:
     print("No existing configuration. Please copy config.py.default as "
           "config.py and optionaly configure it for your setup.")
     exit(1)
+
+try:
+    from config import DEBUG
+except ImportError :
+    DEBUG = False
 
 import rules
 import tools
@@ -32,12 +38,13 @@ def apply_qos():
     # Clean old rules
     reset_qos()
     # Setting new rules
-    print("Setting new rules")
+    logging.info("Setting new rules")
+
     rules.apply_qos()
 
 
 def reset_qos():
-    print("Removing tc rules")
+    logging.info("Removing tc rules")
     ifnames = get_ifnames()
     tools.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
     return
@@ -49,6 +56,17 @@ def show_qos():
     tools.qdisc_show(ifnames, "details")
     print("\n\t QDiscs stats\n\t==============\n")
     tools.qdisc_show(ifnames, "details")
+
+def set_debug(level):
+
+    if level or DEBUG:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    logging.basicConfig(stream=sys.stderr, \
+            format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) ", \
+            level=log_level)
 
 if __name__ == '__main__':
 
@@ -70,12 +88,23 @@ if __name__ == '__main__':
     sp_stop.set_defaults(func=reset_qos)
     sp_show.set_defaults(func=show_qos)
 
+    parser.add_argument('-d', '--debug', \
+        help="Set the debug level", \
+        dest="debug", \
+        action="store_true")
+
     # If no argument provided show help
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
 
-    # Parse argument and execute right function
+
+    # Parse argument
     args = parser.parse_args()
+
+    # Set debug mode
+    set_debug(args.debug)
+
+    # Execute correct function
     args.func()
 
