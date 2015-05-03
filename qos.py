@@ -17,11 +17,23 @@ except ImportError:
 
 try:
     from config import DEBUG
-except ImportError :
+except ImportError:
     DEBUG = False
 
 import rules
 import tools
+
+
+def run_as_root():
+    """
+    Restart the script as root
+    """
+    # Need to be root
+    if os.geteuid() != 0:
+        print("You need to be root to run this script. Relaunching with "
+              "sudo...\n")
+        subprocess.call(["sudo", sys.executable] + sys.argv)
+        exit()
 
 
 def get_ifnames(interfaces_lst=INTERFACES):
@@ -35,6 +47,7 @@ def get_ifnames(interfaces_lst=INTERFACES):
 
 
 def apply_qos():
+    run_as_root()
     # Clean old rules
     reset_qos()
     # Setting new rules
@@ -44,6 +57,7 @@ def apply_qos():
 
 
 def reset_qos():
+    run_as_root()
     logging.info("Removing tc rules")
     ifnames = get_ifnames()
     tools.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
@@ -57,27 +71,24 @@ def show_qos():
     print("\n\t QDiscs stats\n\t==============\n")
     tools.qdisc_show(ifnames, "details")
 
-def set_debug(level):
 
+def set_debug(level):
     if level or DEBUG:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
 
-    logging.basicConfig(stream=sys.stderr, \
-            format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) ", \
-            level=log_level)
+    logging.basicConfig(
+        stream=sys.stderr,
+        format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) ",
+        level=log_level
+    )
 
 if __name__ == '__main__':
-
-    # Need to be root
-    if os.geteuid() != 0:
-        print("You need to be root to run this script. Relaunching with sudo...\n")
-        subprocess.call(["sudo", sys.executable] + sys.argv)
-        exit()
-
     # Set all arguments possible for this script
-    parser = argparse.ArgumentParser(description="Script to set, show or delete QoS rules with TC")
+    parser = argparse.ArgumentParser(
+        description="Script to set, show or delete QoS rules with TC"
+    )
     sp = parser.add_subparsers()
     sp_start = sp.add_parser("start", help="set QoS rules")
     sp_stop = sp.add_parser("stop", help="Remove all QoS rules")
@@ -88,16 +99,13 @@ if __name__ == '__main__':
     sp_stop.set_defaults(func=reset_qos)
     sp_show.set_defaults(func=show_qos)
 
-    parser.add_argument('-d', '--debug', \
-        help="Set the debug level", \
-        dest="debug", \
-        action="store_true")
+    parser.add_argument('-d', '--debug', help="Set the debug level",
+                        dest="debug", action="store_true")
 
     # If no argument provided show help
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
-
 
     # Parse argument
     args = parser.parse_args()
@@ -107,4 +115,3 @@ if __name__ == '__main__':
 
     # Execute correct function
     args.func()
-
