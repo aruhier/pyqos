@@ -32,11 +32,19 @@ apply all the rules once.
 
 When your rules are created, just run `qos.py` :
 ```
-python3 qos.py [option]
-[option]:
-    start: set QoS rules
-    stop: remove all QoS rules
-    show: show QoS rules
+python3 qos.py [-h] [-d] {start,stop,show} ...
+
+Script to set, show or delete QoS rules with TC
+
+positional arguments:
+  {start,stop,show}
+    start            set QoS rules
+    stop             Remove all QoS rules
+    show             Show QoS rules
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -d, --debug        Set the debug level
 ```
 
 Readings about tc

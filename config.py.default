@@ -35,5 +35,6 @@ INTERFACES["GROUP_EXEMPLE"]["tap1"]["speed"] = (
 UPLOAD = INTERFACES["public_if"]["speed"]
 DOWNLOAD = INTERFACES["lan_if"]["speed"]
 
-# If enabled, this script will not execute any command, just prints it
+# If enabled, this script will not execute any command, just prints it (can be
+# override with the -d parameter when launching the script)
 DEBUG = False
