@@ -1,0 +1,36 @@
+interface eth0
+{
+    @set handle 1
+    @set default 10
+    @set rate 200
+    @set ceil 200
+
+    #First leaf
+    leaf
+    {
+        @set rate 100
+        @set classid 5
+
+        leaf
+        {
+            @set rate 50
+            @set classid 10
+
+            leaf
+            {
+                @set rate 25
+                @set classid 15
+
+            }
+
+            leaf
+            {
+                @set rate 25
+                @set classid 20
+            }
+        }
+
+    }
+
+}
+
