@@ -167,8 +167,13 @@ class RulesParser:
     def parse(self):
         """ Parse configuration file """
 
-        return self._parser.parseFile(
-            path.join(self._rules_directory, self._rules_file))
+        try:
+            return self._parser.parseFile(
+                path.join(self._rules_directory, self._rules_file))
+        except FileNotFoundError:
+            logging.error("File %s not found",
+                          path.join(self._rules_directory, self._rules_file))
+            return None
 
 
 if __name__ == '__main__':
@@ -185,6 +190,8 @@ if __name__ == '__main__':
     # Launch parser on config file
     parse_result = parser.parse()
 
-    # Display extracted information for each interfaces
-    for interface in parse_result.keys():
-        result = InterfaceParser(interface, parse_result[interface])
+    if parse_result is not None:
+
+        # Display extracted information for each interfaces
+        for interface in parse_result.keys():
+            result = InterfaceParser(interface, parse_result[interface])
