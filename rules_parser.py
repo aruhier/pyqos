@@ -98,12 +98,10 @@ class LeafParser:
                     logging.info("%s => %s : %s",
                                  option[0], option[1], option[2])
                 else:
-                    logging.warning("Trying to set %s to %s : \
-                                        Unknown keyword",
-                                    option[1], option[2])
+                    logging.warning("Trying to set %s to %s : "
+                                    "Unknown keyword", option[1], option[2])
             else:
-                logging.warning("Unrecognized keywords %s",
-                                option[0])
+                logging.warning("Unrecognized keywords %s", option[0])
 
     def parse_leaves(self):
         """ Parse child leaves """
