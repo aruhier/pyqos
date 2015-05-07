@@ -1,152 +1,151 @@
 interface eth0
 {
     #Interface informations
-    @set handle 1
-    @set default 1500
-    @set rate 5000
-    @set burst 625
+    handle 1
+    default 1500
+    rate 5000
+    burst 625
 
 
     # All leaves
     leaf
     {
 
-        @set algo PFIFO
-        @set classid 100
-        @set prio 10
-        @set mark 100
-        @set rate 500
-        @set ceil 3750
-        @set burst 31
-        @set cburst 125
+        algo PFIFO
+        classid 100
+        prio 10
+        mark 100
+        rate 500
+        ceil 3750
+        burst 31
+        cburst 125
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 200
-        @set prio 20
-        @set mark 200
-        @set rate 2500
-        @set ceil 5000
-        @set burst 156
-        @set cburst 625
+        algo SFQ
+        classid 200
+        prio 20
+        mark 200
+        rate 2500
+        ceil 5000
+        burst 156
+        cburst 625
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 300
-        @set prio 30
-        @set mark 300
-        @set rate 500
-        @set ceil 5000
-        @set burst 31
-        @set cburst 125
+        algo SFQ
+        classid 300
+        prio 30
+        mark 300
+        rate 500
+        ceil 5000
+        burst 31
+        cburst 125
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 400
-        @set prio 40
-        @set mark 400
-        @set rate 1000
-        @set ceil 5000
-        @set burst 62
-        @set cburst 250
+        algo SFQ
+        classid 400
+        prio 40
+        mark 400
+        rate 1000
+        ceil 5000
+        burst 62
+        cburst 250
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 1000
-        @set prio 100
-        @set mark 1000
-        @set rate 3000
-        @set ceil 5000
-        @set burst 187
-        @set cburst 750
+        algo SFQ
+        classid 1000
+        prio 100
+        mark 1000
+        rate 3000
+        ceil 5000
+        burst 187
+        cburst 750
     }
 
 }
 
 interface eth1
 {
-    @set handle 1
-    @set default 1500
-    @set rate 100000
-    @set burst 12500
+    handle 1
+    default 1500
+    rate 100000
+    burst 12500
 
     leaf
     {
 
-        @set algo PFIFO
-        @set classid 100
-        @set prio 10
-        @set mark 100
-        @set rate 10000
-        @set ceil 75000
-        @set burst 625
-        @set cburst 2500
+        algo PFIFO
+        classid 100
+        prio 10
+        mark 100
+        rate 10000
+        ceil 75000
+        burst 625
+        cburst 2500
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 200
-        @set prio 20
-        @set mark 200
-        @set rate 50000
-        @set ceil 100000
-        @set burst 3125
-        @set cburst 12500
+        algo SFQ
+        classid 200
+        prio 20
+        mark 200
+        rate 50000
+        ceil 100000
+        burst 3125
+        cburst 12500
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 300
-        @set prio 30
-        @set mark 300
-        @set rate 10000
-        @set ceil 100000
-        @set burst 625
-        @set cburst 2500
+        algo SFQ
+        classid 300
+        prio 30
+        mark 300
+        rate 10000
+        ceil 100000
+        burst 625
+        cburst 2500
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 400
-        @set prio 40
-        @set mark 400
-        @set rate 20000
-        @set ceil 100000
-        @set burst 1250
-        @set cburst 5000
+        algo SFQ
+        classid 400
+        prio 40
+        mark 400
+        rate 20000
+        ceil 100000
+        burst 1250
+        cburst 5000
     }
 
     leaf
     {
 
-        @set algo SFQ
-        @set classid 1000
-        @set prio 100
-        @set mark 1000
-        @set rate 60000
-        @set ceil 100000
-        @set burst 3750
-        @set cburst 15000
+        algo SFQ
+        classid 1000
+        prio 100
+        mark 1000
+        rate 60000
+        ceil 100000
+        burst 3750
+        cburst 15000
     }
-
 
 }
 

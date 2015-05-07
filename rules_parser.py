@@ -12,15 +12,8 @@ from built_in_classes import *
 
 DIRECTORY = "rules"
 
-__setter__ = "@set"
-__define__ = "@def"
-
 __interface__ = "interface"
 __leaf__ = "leaf"
-
-__interface_keywords__ = [__setter__]
-__leaf_keywords__ = [__setter__]
-
 
 class InterfaceParser:
     """ Parse options concerning the root of one interface """
@@ -69,17 +62,12 @@ class InterfaceParser:
         """ Parse interface options  """
 
         for option in self._content[0]:
-            if option[0] == __setter__:
-                if hasattr(self, option[1]):
-                    setattr(self, option[1], option[2])
-                    logging.info("%s => %s : %s",
-                                 option[0], option[1], option[2])
-                else:
-                    logging.warning("Trying to set %s to %s : Unknown keyword",
-                                    option[1], option[2])
+            if hasattr(self, option[0]):
+                setattr(self, option[0], option[1])
+                logging.info("Set %s to %s", option[0], option[1])
             else:
-                logging.warning("Unrecognized keywords %s in interface %s",
-                                option[0], self._interface)
+                logging.warning("Trying to set %s to %s : Unknown keyword",
+                                option[0], option[1])
 
     def parse_leaves(self):
         """ Parse interface leaves """
@@ -147,16 +135,12 @@ class LeafParser:
         """ Parse leaf options """
 
         for option in self._content[0]:
-            if option[0] == __setter__:
-                if hasattr(self, option[1]):
-                    setattr(self, option[1], option[2])
-                    logging.info("%s => %s : %s",
-                                 option[0], option[1], option[2])
-                else:
-                    logging.warning("Trying to set %s to %s : "
-                                    "Unknown keyword", option[1], option[2])
+            if hasattr(self, option[0]):
+                setattr(self, option[0], option[1])
+                logging.info("Set %s to %s", option[0], option[1])
             else:
-                logging.warning("Unrecognized keywords %s", option[0])
+                logging.warning("Trying to set %s to %s : "
+                                    "Unknown keyword", option[0], option[1])
 
         self.update_properties()
 
@@ -196,8 +180,7 @@ class RulesParser:
         """ Set interface structure for parser """
 
         interface_options = Group(ZeroOrMore(Group(
-            oneOf(__interface_keywords__) + Word(alphanums) +
-            Word(alphanums))))
+            Word(alphanums) + Word(alphanums))))
 
         self._interface_struct = Suppress(Keyword(__interface__)) + \
             dictOf(Word(alphanums), Suppress("{") + interface_options +
@@ -210,7 +193,7 @@ class RulesParser:
         """ Set leaf structure for parser """
 
         leaf_options = Group(ZeroOrMore(
-            Group(oneOf(__leaf_keywords__) + Word(alphanums) + Word(alphanums))
+            Group(Word(alphanums) + Word(alphanums))
         ))
         leaf_content = leaf_options + \
             Group(ZeroOrMore(self._leaf_structure))
