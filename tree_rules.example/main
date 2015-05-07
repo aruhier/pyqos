@@ -1,36 +1,152 @@
 interface eth0
 {
+    #Interface informations
     @set handle 1
-    @set default 10
-    @set rate 200
-    @set ceil 200
+    @set default 1500
+    @set rate 5000
+    @set burst 625
 
-    #First leaf
+
+    # All leaves
     leaf
     {
-        @set rate 100
-        @set classid 5
 
-        leaf
-        {
-            @set rate 50
-            @set classid 10
-
-            leaf
-            {
-                @set rate 25
-                @set classid 15
-
-            }
-
-            leaf
-            {
-                @set rate 25
-                @set classid 20
-            }
-        }
-
+        @set algo PFIFO
+        @set classid 100
+        @set prio 10
+        @set mark 100
+        @set rate 500
+        @set ceil 3750
+        @set burst 31
+        @set cburst 125
     }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 200
+        @set prio 20
+        @set mark 200
+        @set rate 2500
+        @set ceil 5000
+        @set burst 156
+        @set cburst 625
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 300
+        @set prio 30
+        @set mark 300
+        @set rate 500
+        @set ceil 5000
+        @set burst 31
+        @set cburst 125
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 400
+        @set prio 40
+        @set mark 400
+        @set rate 1000
+        @set ceil 5000
+        @set burst 62
+        @set cburst 250
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 1000
+        @set prio 100
+        @set mark 1000
+        @set rate 3000
+        @set ceil 5000
+        @set burst 187
+        @set cburst 750
+    }
+
+}
+
+interface eth1
+{
+    @set handle 1
+    @set default 1500
+    @set rate 100000
+    @set burst 12500
+
+    leaf
+    {
+
+        @set algo PFIFO
+        @set classid 100
+        @set prio 10
+        @set mark 100
+        @set rate 10000
+        @set ceil 75000
+        @set burst 625
+        @set cburst 2500
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 200
+        @set prio 20
+        @set mark 200
+        @set rate 50000
+        @set ceil 100000
+        @set burst 3125
+        @set cburst 12500
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 300
+        @set prio 30
+        @set mark 300
+        @set rate 10000
+        @set ceil 100000
+        @set burst 625
+        @set cburst 2500
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 400
+        @set prio 40
+        @set mark 400
+        @set rate 20000
+        @set ceil 100000
+        @set burst 1250
+        @set cburst 5000
+    }
+
+    leaf
+    {
+
+        @set algo SFQ
+        @set classid 1000
+        @set prio 100
+        @set mark 1000
+        @set rate 60000
+        @set ceil 100000
+        @set burst 3750
+        @set cburst 15000
+    }
+
 
 }
 
