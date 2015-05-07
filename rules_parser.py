@@ -8,6 +8,10 @@ from os import path
 import sys
 import logging
 
+from built_in_classes import *
+
+DIRECTORY = "rules"
+
 __setter__ = "@set"
 __define__ = "@def"
 
@@ -34,6 +38,7 @@ class InterfaceParser:
     ceil = None
     rate = None
     burst = None
+    cburst = None
 
     def __init__(self, name, content):
         logging.info("New interface %s", name)
@@ -41,7 +46,24 @@ class InterfaceParser:
         self._content = content
 
         self.parse_options()
+        self.create_root()
+
         self.parse_leaves()
+
+    def create_root(self):
+        """ Create root for this interface """
+
+        self._root = RootHTBClass(
+            interface=self._interface,
+            rate=self.rate,
+            ceil=self.ceil,
+            burst=self.burst,
+            qdisc_prefix_id=str(self.handle) + ":",
+            default=self.default,
+        )
+
+    def apply_qos(self):
+        self._root.apply_qos()
 
     def parse_options(self):
         """ Parse interface options  """
@@ -64,13 +86,15 @@ class InterfaceParser:
 
         # Same level leaf
         for leaf in self._content[1]:
-            LeafParser(leaf)
+            self._root.add_child(LeafParser(leaf, self.handle).get_leaf())
 
 
 class LeafParser:
     """ Parse options in a leaf """
 
     _content = None
+    _metaclass = None
+    _parent = None
 
     classid = None
     rate = None
@@ -79,14 +103,45 @@ class LeafParser:
     cburst = None
     quantum = None
     prio = None
+    mark = None
     handle = None
     default = None
+    algo = None
 
-    def __init__(self, content):
+    def __init__(self, content, parent):
         logging.info("New leaf")
+        self._parent = parent
         self._content = content
         self.parse_options()
+
+        self.set_leaf()
         self.parse_leaves()
+
+    def set_leaf(self):
+
+        if self._content[1]:
+            # Generate a subroot
+            self._metaclass = classRootGenerator(classid=self.classid,
+                    rate=self.rate, burst=self.burst, ceil=self.ceil,
+                    cburst=self.cburst, handle=self.handle,
+                    default=self.default, prio=self.prio, mark=self.mark,
+                    algorithm=self.algorithm)
+        else:
+            # Generate end leaf
+            self._metaclass = classLeafGenerator(classid=self.classid,
+                    rate=self.rate, burst=self.burst, ceil=self.ceil,
+                    cburst=self.cburst, prio=self.prio, mark=self.mark,
+                    algorithm=self.algo)
+
+        self._metaclass = self._metaclass()
+
+    def get_leaf(self):
+        return self._metaclass
+
+    def update_properties(self):
+        self.classid = str(self._parent) + ":" + str(self.classid)
+        self.prio = int(self.prio)
+        self.mark = int(self.mark)
 
     def parse_options(self):
         """ Parse leaf options """
@@ -103,26 +158,29 @@ class LeafParser:
             else:
                 logging.warning("Unrecognized keywords %s", option[0])
 
+        self.update_properties()
+
     def parse_leaves(self):
         """ Parse child leaves """
 
         for leaf in self._content[1]:
-            LeafParser(leaf)
+            self._metaclass.add_child(
+                    LeafParser(leaf, self.classid).get_leaf())
 
 
 class RulesParser:
     """ Get all information in configuration file """
 
-    _rules_directory = "rules"
+    _rules_file = "main"
 
     _parser = None
-    _rules_file = None
+    _rules_directory = None
     _interface_struct = None
     _leaf_structure = None
 
-    def __init__(self, config="main"):
+    def __init__(self, directory=DIRECTORY):
         self._leaf_structure = Forward()
-        self._rules_file = config
+        self._rules_directory = directory
         self.set_leaf_parser()
         self.set_interface_parser()
         self._parser = OneOrMore(self._interface_struct)
@@ -174,6 +232,108 @@ class RulesParser:
             return None
 
 
+class classLeafGenerator:
+    """ Create the class according to the leaf properties """
+
+    def __new__(cls, classid, prio, mark, rate, ceil, burst, cburst,
+                algorithm):
+
+        algorithm = cls.check_algo(algorithm, default=SFQClass)
+        leaf = type("leaf", (algorithm,), {})
+        leaf.classid = classid
+        leaf.prio = prio
+        leaf.mark = mark
+        leaf.rate = rate
+        leaf.ceil = ceil
+        leaf.burst = burst
+        leaf.cburst = cburst
+
+        return leaf
+
+    def check_algo(algo, default):
+        """ Check if correct algorithm is provided """
+
+        if algo is None:
+            logging.warning("No algorithm specified. Using default (%s)",
+                            default.__name__)
+            return default
+        else:
+            try:
+                return globals()[algo + "Class"]
+            except KeyError:
+                logging.warning("Unknow algorithm specified. Using default %s",
+                                default.__name__)
+                return default
+
+
+class classRootGenerator:
+    """ Create the class according to the root leaf properties """
+
+    def __new__(cls, classid, prio, mark, rate, ceil, burst, cburst, handle,
+                default, algorithm):
+
+        algorithm = cls.check_algo(algorithm, default=RootHTBClass)
+        root = type("root", (algorithm,), {})
+        root.classid = classid
+        root.prio = prio
+        root.mark = mark
+        root.rate = rate
+        root.burst = burst
+        root.cburst = cburst
+
+        return root
+
+    def check_algo(algo, default):
+        """ Check if correct algorithm is provided """
+
+        if algo is None:
+            logging.warning("No algorithm specified. Using default (%s)",
+                            default.__name__)
+            return default
+        else:
+            try:
+                return globals()[algo + "Class"]
+            except KeyError:
+                logging.warning("Unknow algorithm specified. Using default %s",
+                                default.__name__)
+                return default
+
+        return None
+
+
+def get_config(config_file):
+    """ Return parsed configuration """
+
+    # Initialize parser
+    parser = RulesParser(config_file)
+
+    # Launch parser on config file
+    return parser.parse()
+
+
+def setup_qos(config_file=DIRECTORY):
+    """ Apply Qos from configuration file """
+
+    parse_result = get_config(config_file)
+    if parse_result is not None:
+        if not len(parse_result):
+            logging.warning("No interface found in configuration file")
+        else:
+            # Display extracted information for each interfaces
+            for interface in parse_result.keys():
+                result = InterfaceParser(interface, parse_result[interface])
+                result.apply_qos()
+
+
+def get_ifnames(config_file=DIRECTORY):
+    """ Return all interfaces found in configuration file """
+
+    try:
+        return list(get_config(config_file).keys())
+    except AttributeError:
+        return list()
+
+
 if __name__ == '__main__':
     log_level = logging.INFO
 
@@ -182,14 +342,5 @@ if __name__ == '__main__':
         format="[%(levelname)s] %(message)s ",
         level=log_level
     )
-    # Initialize parser
-    parser = RulesParser()
 
-    # Launch parser on config file
-    parse_result = parser.parse()
-
-    if parse_result is not None:
-
-        # Display extracted information for each interfaces
-        for interface in parse_result.keys():
-            result = InterfaceParser(interface, parse_result[interface])
+    setup_qos()
