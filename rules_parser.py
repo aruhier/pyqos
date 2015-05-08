@@ -2,8 +2,10 @@
 # Author: Thomas Gagneret
 # Rules parser
 
-from pyparsing import Word, OneOrMore, oneOf, Group, ZeroOrMore, dictOf, \
-    Suppress, alphanums, Keyword, restOfLine, Forward
+from pyparsing import (
+    Word, OneOrMore, Group, ZeroOrMore, dictOf, Suppress, alphanums, Keyword,
+    restOfLine, Forward
+)
 from os import path
 import sys
 import logging
@@ -14,6 +16,7 @@ DIRECTORY = "rules"
 
 __interface__ = "interface"
 __leaf__ = "leaf"
+
 
 class InterfaceParser:
     """ Parse options concerning the root of one interface """
@@ -40,12 +43,12 @@ class InterfaceParser:
 
         self.parse_options()
         self.create_root()
-
         self.parse_leaves()
 
     def create_root(self):
-        """ Create root for this interface """
-
+        """
+        Create root for this interface
+        """
         self._root = RootHTBClass(
             interface=self._interface,
             rate=self.rate,
@@ -59,8 +62,9 @@ class InterfaceParser:
         self._root.apply_qos()
 
     def parse_options(self):
-        """ Parse interface options  """
-
+        """
+        Parse interface options
+        """
         for option in self._content[0]:
             if hasattr(self, option[0]):
                 setattr(self, option[0], option[1])
@@ -70,16 +74,18 @@ class InterfaceParser:
                                 option[0], option[1])
 
     def parse_leaves(self):
-        """ Parse interface leaves """
-
+        """
+        Parse interface leaves
+        """
         # Same level leaf
         for leaf in self._content[1]:
             self._root.add_child(LeafParser(leaf, self.handle).get_leaf())
 
 
 class LeafParser:
-    """ Parse options in a leaf """
-
+    """
+    Parse options in a leaf
+    """
     _content = None
     _metaclass = None
     _parent = None
@@ -100,26 +106,25 @@ class LeafParser:
         logging.info("New leaf")
         self._parent = parent
         self._content = content
-        self.parse_options()
 
+        self.parse_options()
         self.set_leaf()
         self.parse_leaves()
 
     def set_leaf(self):
-
         if self._content[1]:
             # Generate a subroot
-            self._metaclass = classRootGenerator(classid=self.classid,
-                    rate=self.rate, burst=self.burst, ceil=self.ceil,
-                    cburst=self.cburst, handle=self.handle,
-                    default=self.default, prio=self.prio, mark=self.mark,
-                    algorithm=self.algorithm)
+            self._metaclass = ClassRootGenerator(
+                classid=self.classid, rate=self.rate, burst=self.burst,
+                ceil=self.ceil, cburst=self.cburst, handle=self.handle,
+                default=self.default, prio=self.prio, mark=self.mark,
+                algorithm=self.algorithm)
         else:
             # Generate end leaf
-            self._metaclass = classLeafGenerator(classid=self.classid,
-                    rate=self.rate, burst=self.burst, ceil=self.ceil,
-                    cburst=self.cburst, prio=self.prio, mark=self.mark,
-                    algorithm=self.algo)
+            self._metaclass = ClassLeafGenerator(
+                classid=self.classid, rate=self.rate, burst=self.burst,
+                ceil=self.ceil, cburst=self.cburst, prio=self.prio,
+                mark=self.mark, algorithm=self.algo)
 
         self._metaclass = self._metaclass()
 
@@ -132,29 +137,32 @@ class LeafParser:
         self.mark = int(self.mark)
 
     def parse_options(self):
-        """ Parse leaf options """
-
+        """
+        Parse leaf options
+        """
         for option in self._content[0]:
             if hasattr(self, option[0]):
                 setattr(self, option[0], option[1])
                 logging.info("Set %s to %s", option[0], option[1])
             else:
                 logging.warning("Trying to set %s to %s : "
-                                    "Unknown keyword", option[0], option[1])
-
+                                "Unknown keyword", option[0], option[1])
         self.update_properties()
 
     def parse_leaves(self):
-        """ Parse child leaves """
-
+        """
+        Parse child leaves
+        """
         for leaf in self._content[1]:
             self._metaclass.add_child(
-                    LeafParser(leaf, self.classid).get_leaf())
+                LeafParser(leaf, self.classid).get_leaf()
+            )
 
 
 class RulesParser:
-    """ Get all information in configuration file """
-
+    """
+    Get all information in configuration file
+    """
     _rules_file = "main"
 
     _parser = None
@@ -171,41 +179,51 @@ class RulesParser:
         self.post_creation()
 
     def post_creation(self):
-        """ Apply options in parser """
-
+        """
+        Apply options in parser
+        """
         self._parser.ignore("#" + restOfLine)
         # self._parser.setDebug()
 
     def set_interface_parser(self):
-        """ Set interface structure for parser """
-
+        """
+        Set interface structure for parser
+        """
         interface_options = Group(ZeroOrMore(Group(
             Word(alphanums) + Word(alphanums))))
 
-        self._interface_struct = Suppress(Keyword(__interface__)) + \
-            dictOf(Word(alphanums), Suppress("{") + interface_options +
-                   Group(ZeroOrMore(self._leaf_structure)) +
-                   Suppress("}"))
-
+        self._interface_struct = (
+            Suppress(Keyword(__interface__)) +
+            dictOf(
+                Word(alphanums),
+                (
+                    Suppress("{") + interface_options +
+                    Group(ZeroOrMore(self._leaf_structure)) +
+                    Suppress("}")
+                )
+            )
+        )
         self._parser = None
 
     def set_leaf_parser(self):
-        """ Set leaf structure for parser """
+        """
+        Set leaf structure for parser
+        """
+        leaf_options = Group(
+            ZeroOrMore(Group(Word(alphanums) + Word(alphanums)))
+        )
+        leaf_content = leaf_options + Group(ZeroOrMore(self._leaf_structure))
 
-        leaf_options = Group(ZeroOrMore(
-            Group(Word(alphanums) + Word(alphanums))
-        ))
-        leaf_content = leaf_options + \
-            Group(ZeroOrMore(self._leaf_structure))
-
-        self._leaf_structure << Suppress(__leaf__) + \
-            Suppress("{") + \
-            Group(leaf_content) + \
+        self._leaf_structure << Suppress(__leaf__) + (
+            Suppress("{") +
+            Group(leaf_content) +
             Suppress("}")
+        )
 
     def parse(self):
-        """ Parse configuration file """
-
+        """
+        Parse configuration file
+        """
         try:
             return self._parser.parseFile(
                 path.join(self._rules_directory, self._rules_file))
@@ -215,12 +233,12 @@ class RulesParser:
             return None
 
 
-class classLeafGenerator:
-    """ Create the class according to the leaf properties """
-
+class ClassLeafGenerator:
+    """
+    Create the class according to the leaf properties
+    """
     def __new__(cls, classid, prio, mark, rate, ceil, burst, cburst,
                 algorithm):
-
         algorithm = cls.check_algo(algorithm, default=SFQClass)
         leaf = type("leaf", (algorithm,), {})
         leaf.classid = classid
@@ -234,8 +252,9 @@ class classLeafGenerator:
         return leaf
 
     def check_algo(algo, default):
-        """ Check if correct algorithm is provided """
-
+        """
+        Check if correct algorithm is provided
+        """
         if algo is None:
             logging.warning("No algorithm specified. Using default (%s)",
                             default.__name__)
@@ -249,12 +268,12 @@ class classLeafGenerator:
                 return default
 
 
-class classRootGenerator:
-    """ Create the class according to the root leaf properties """
-
+class ClassRootGenerator:
+    """
+    Create the class according to the root leaf properties
+    """
     def __new__(cls, classid, prio, mark, rate, ceil, burst, cburst, handle,
                 default, algorithm):
-
         algorithm = cls.check_algo(algorithm, default=RootHTBClass)
         root = type("root", (algorithm,), {})
         root.classid = classid
@@ -267,8 +286,9 @@ class classRootGenerator:
         return root
 
     def check_algo(algo, default):
-        """ Check if correct algorithm is provided """
-
+        """
+        Check if correct algorithm is provided
+        """
         if algo is None:
             logging.warning("No algorithm specified. Using default (%s)",
                             default.__name__)
@@ -285,8 +305,9 @@ class classRootGenerator:
 
 
 def get_config(config_file):
-    """ Return parsed configuration """
-
+    """
+    Return parsed configuration
+    """
     # Initialize parser
     parser = RulesParser(config_file)
 
@@ -295,8 +316,9 @@ def get_config(config_file):
 
 
 def setup_qos(config_file=DIRECTORY):
-    """ Apply Qos from configuration file """
-
+    """
+    Apply Qos from configuration file
+    """
     parse_result = get_config(config_file)
     if parse_result is not None:
         if not len(parse_result):
@@ -309,13 +331,13 @@ def setup_qos(config_file=DIRECTORY):
 
 
 def get_ifnames(config_file=DIRECTORY):
-    """ Return all interfaces found in configuration file """
-
+    """
+    Return all interfaces found in configuration file
+    """
     try:
         return list(get_config(config_file).keys())
     except AttributeError:
         return list()
-
 
 if __name__ == '__main__':
     log_level = logging.INFO

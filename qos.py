@@ -20,7 +20,6 @@ def run_as_root():
     """
     Restart the script as root
     """
-    # Need to be root
     if os.geteuid() != 0:
         print("You need to be root to run this script. Relaunching with "
               "sudo...\n")
