@@ -57,8 +57,7 @@ optional arguments:
 Defining rules
 --------------
 
-Pythonic rules
-~~~~~~~~~~~~~~
+#### Pythonic rules
 
 This is the default method for now, it is the most tested as it was the first
 one implemented.
@@ -76,8 +75,7 @@ Rules are defined in the `rules` folder, and applied by calling the
 available in the `pythonic_rules.example` folder.
 
 
-Tree rules
-~~~~~~~~~~
+#### Tree rules
 
 It allows to easily define your rules hierarchy by bloc. It brings a more
 intuitive way to define your QoS rules, and is more adapted for a simple
