@@ -1,0 +1,151 @@
+interface eth0
+{
+    #Interface informations
+    handle 1
+    default 1500
+    rate 5000
+    burst 625
+
+
+    # All leaves
+    leaf
+    {
+
+        algo PFIFO
+        classid 100
+        prio 10
+        mark 100
+        rate 500
+        ceil 3750
+        burst 31
+        cburst 125
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 200
+        prio 20
+        mark 200
+        rate 2500
+        ceil 5000
+        burst 156
+        cburst 625
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 300
+        prio 30
+        mark 300
+        rate 500
+        ceil 5000
+        burst 31
+        cburst 125
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 400
+        prio 40
+        mark 400
+        rate 1000
+        ceil 5000
+        burst 62
+        cburst 250
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 1000
+        prio 100
+        mark 1000
+        rate 3000
+        ceil 5000
+        burst 187
+        cburst 750
+    }
+
+}
+
+interface eth1
+{
+    handle 1
+    default 1500
+    rate 100000
+    burst 12500
+
+    leaf
+    {
+
+        algo PFIFO
+        classid 100
+        prio 10
+        mark 100
+        rate 10000
+        ceil 75000
+        burst 625
+        cburst 2500
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 200
+        prio 20
+        mark 200
+        rate 50000
+        ceil 100000
+        burst 3125
+        cburst 12500
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 300
+        prio 30
+        mark 300
+        rate 10000
+        ceil 100000
+        burst 625
+        cburst 2500
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 400
+        prio 40
+        mark 400
+        rate 20000
+        ceil 100000
+        burst 1250
+        cburst 5000
+    }
+
+    leaf
+    {
+
+        algo SFQ
+        classid 1000
+        prio 100
+        mark 1000
+        rate 60000
+        ceil 100000
+        burst 3750
+        cburst 15000
+    }
+
+}
+
