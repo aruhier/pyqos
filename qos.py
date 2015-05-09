@@ -90,9 +90,9 @@ if __name__ == '__main__':
     parser_group = parser.add_mutually_exclusive_group()
 
     # Use class rules
-    parser_group.add_argument('-c', '--class',
-                              help="Use class rules (default)",
-                              dest="class", action="store_true")
+    parser_group.add_argument('-p', '--pythonic',
+                              help="Use pythonic rules (default)",
+                              dest="pythonic", action="store_true")
     # Use tree rules
     parser_group.add_argument('-t', '--tree', help="Use tree rules",
                               dest="tree", action="store_true")
