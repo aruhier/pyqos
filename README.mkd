@@ -20,7 +20,7 @@ Usage
 -----
 
 QoS rules are is the `rules` folder. It doesn't exist from scratch, but you can
-copy the `rules.example` as `rules`, where there are some examples
+copy the `pythonic_rules.example` as `rules`, where there are some examples
 corresponding to my actual setup.
 
 The source file `tools.py` contains all the useful functions for rules, which

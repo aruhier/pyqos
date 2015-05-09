@@ -109,9 +109,9 @@ if __name__ == '__main__':
     set_debug(args.debug)
 
     if args.tree:
-        from rules_parser import setup_qos, get_ifnames
+        from tree_rules_parser import setup_qos, get_ifnames
     else:
-        from class_parser import setup_qos, get_ifnames
+        from pythonic_rules_parser import setup_qos, get_ifnames
 
     # Execute correct function, or print usage
     try:
