@@ -2,6 +2,7 @@
 # Author: Anthony Ruhier
 
 import tools
+from exceptions import BadAttributeValueException, NoParentException
 
 
 class BasicHTBClass():
@@ -16,8 +17,13 @@ class BasicHTBClass():
     _interface = None
     #: class id
     classid = None
-    #: rate
+    #: rate: If rate is an integer, will be used directly. Can also be a
+    # tupple to set a relative rate, equals to a % of the parent class rate:
+    # (percentage, rate_min, rate_max). The root class cannot have a relative
+    # rate.
     rate = None
+    #: computed rate. used to store the real rate if it is relative
+    _rate = None
     #: ceil
     ceil = None
     #: burst
@@ -88,6 +94,43 @@ class BasicHTBClass():
                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
                         prio=self.prio, quantum=self.quantum)
 
+    def compute(self, auto_quantum=True):
+        """
+        Compute values that can/need to be
+
+        Compute class rate and ceil (compute when they are relatives, otherwise
+        just copies the value defined). Computes the quantum.
+        """
+        def _compute_speeds(tuple_to_compute, parent_value):
+            try:
+                coeff, rate_min, rate_max = tuple_to_compute
+            except ValueError:
+                coeff, rate_min = tuple_to_compute
+                rate_max = parent_value
+            return int(
+                min(max(parent_value * coeff/100, rate_min), rate_max)
+            )
+
+        exception_msg = (" is relative and asked to be computed, but "
+                         "class has no parent.")
+
+        if type(self.rate) is tuple:
+            if self._parent is None:
+                raise NoParentException("Rate " + exception_msg)
+            self._rate = _compute_speeds(self.rate, self._parent.rate)
+        else:
+            self._rate = self.rate
+
+        if type(self.ceil) is tuple:
+            if self._parent is None:
+                raise NoParentException("Ceil " + exception_msg)
+            self._ceil = _compute_speeds(self.ceil, self._parent.ceil)
+        else:
+            self._ceil = self.ceil
+
+        if auto_quantum:
+            self._check_quantum()
+
     def apply_qos(self, auto_quantum=True):
         """
         Apply qos with current attributes
@@ -95,8 +138,7 @@ class BasicHTBClass():
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        if auto_quantum:
-            self._check_quantum()
+        self.compute(auto_quantum=auto_quantum)
         self._add_class()
         for child in self.children:
             child.apply_qos(auto_quantum=auto_quantum)
@@ -159,8 +201,15 @@ class RootHTBClass(BasicHTBClass):
         If the r2q has been defined, the quantum will not be defined
         automatiqually for children.
         """
+        if type(self.rate) is tuple:
+            raise BadAttributeValueException(
+                "Rate cannot be relative for a root class"
+            )
+
         self._add_qdisc()
-        return super().apply_qos(auto_quantum=(self.r2q is None))
+        return super().apply_qos(
+            auto_quantum=(auto_quantum and self.r2q is None)
+        )
 
 
 class _BasicFilterHTBClass(BasicHTBClass):
