@@ -5,11 +5,30 @@ import tools
 from exceptions import BadAttributeValueException, NoParentException
 
 
-class BasicHTBClass():
+class EmptyObject():
     """
-    Basic class
+    Object that does nothing, but "nothing" can be useful
+
+    Base object to simulate, for example, something already handled by another
+    tool in the system. Just set as attribute everything it receives in
+    parameter during the construction.
     """
-    #: parent class
+    def __init__(self, **kwargs):
+        """
+        Set as attribute everything received
+        """
+        for attr, value in kwargs.items():
+            setattr(self, attr, value)
+
+
+class EmptyHTBClass():
+    """
+    HTB that does nothing but can be used as parent for example
+
+    Can be useful to simulate, for example, a class already handled by another
+    tool in the system.
+    """
+    #: parent object
     _parent = None
     #: root class: class directly attached to the interface
     _root = None
@@ -49,24 +68,22 @@ class BasicHTBClass():
         self.prio = prio if prio is not None else self.prio
         self.children = children if children is not None else []
 
+    def _add_class(self):
+        pass
+
     def _check_quantum(self):
         """
         Check if the quantum is not too high
 
         Kernel warnings that quantum is too high if it's superior to 18 000
         """
-        if self.rate is None or self._interface is None:
-            return
-
-        # Adding 14 to the MTU to handle the ethernet overhead
-        mtu = tools.get_mtu(self._interface) + 14
-        self.quantum = mtu if self.quantum is None else self.quantum
+        pass
 
     def add_child(self, class_child):
         """
         Add a class as children
         """
-        class_child.set_parent_root(parent=self.classid)
+        class_child.set_parent_root(parent=self)
         class_child.recursive_parent_change(self._root, self._interface)
         self.children.append(class_child)
 
@@ -85,14 +102,37 @@ class BasicHTBClass():
         for child in self.children:
             child.recursive_parent_change(root, interface)
 
-    def _add_class(self):
+    def apply_qos(self, auto_quantum=True):
         """
-        Add class to the interface
+        Apply qos with current attributes
+
+        The function is recursive, so it will apply the qos of all children
+        too.
         """
-        tools.class_add(self._interface, parent=self._parent,
-                        classid=self.classid, rate=self.rate,
-                        ceil=self.ceil, burst=self.burst, cburst=self.cburst,
-                        prio=self.prio, quantum=self.quantum)
+        self.compute(auto_quantum=auto_quantum)
+        self._add_class()
+        for child in self.children:
+            child.apply_qos(auto_quantum=auto_quantum)
+
+    def set_parent_root(self, parent=None, root=None):
+        """
+        Set root and/or parent
+
+        param parent: parent class id
+        param root: root class id
+        """
+        if parent:
+            self._parent = parent
+        if root:
+            self._root = root
+
+    def set_interface(self, interface):
+        """
+        Set interface
+
+        :param interface: interface to attach the class
+        """
+        self._interface = interface
 
     def compute(self, auto_quantum=True):
         """
@@ -131,37 +171,32 @@ class BasicHTBClass():
         if auto_quantum:
             self._check_quantum()
 
-    def apply_qos(self, auto_quantum=True):
-        """
-        Apply qos with current attributes
 
-        The function is recursive, so it will apply the qos of all children
-        too.
+class BasicHTBClass(EmptyHTBClass):
+    """
+    Basic class
+    """
+    def _check_quantum(self):
         """
-        self.compute(auto_quantum=auto_quantum)
-        self._add_class()
-        for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum)
+        Check if the quantum is not too high
 
-    def set_parent_root(self, parent=None, root=None):
+        Kernel warnings that quantum is too high if it's superior to 18 000
         """
-        Set root and/or parent
+        if self._rate is None or self._interface is None:
+            return
 
-        param parent: parent class id
-        param root: root class id
-        """
-        if parent:
-            self._parent = parent
-        if root:
-            self._root = root
+        # Adding 14 to the MTU to handle the ethernet overhead
+        mtu = tools.get_mtu(self._interface) + 14
+        self.quantum = mtu if self.quantum is None else self.quantum
 
-    def set_interface(self, interface):
+    def _add_class(self):
         """
-        Set interface
-
-        :param interface: interface to attach the class
+        Add class to the interface
         """
-        self._interface = interface
+        tools.class_add(self._interface, parent=self._parent.classid,
+                        classid=self.classid, rate=self._rate,
+                        ceil=self._ceil, burst=self.burst, cburst=self.cburst,
+                        prio=self.prio, quantum=self.quantum)
 
 
 class RootHTBClass(BasicHTBClass):
@@ -184,8 +219,9 @@ class RootHTBClass(BasicHTBClass):
         self.qdisc_prefix_id = qdisc_prefix_id
         self.default = default
         self.r2q = r2q if r2q is not None else self.r2q
-        self._parent = str(self.qdisc_prefix_id) + "0"
-        self._root = self._parent
+        qdisc_object = EmptyObject(classid=str(self.qdisc_prefix_id) + "0")
+        self._parent = qdisc_object
+        self._root = qdisc_object
         self.classid = str(self.qdisc_prefix_id) + "1"
         super().__init__(*args, **kwargs)
 
@@ -205,7 +241,7 @@ class RootHTBClass(BasicHTBClass):
             raise BadAttributeValueException(
                 "Rate cannot be relative for a root class"
             )
-
+        self.compute()
         self._add_qdisc()
         return super().apply_qos(
             auto_quantum=(auto_quantum and self.r2q is None)
@@ -227,8 +263,8 @@ class _BasicFilterHTBClass(BasicHTBClass):
         """
         Add filter to the class
         """
-        tools.filter_add(self._interface, parent=self._root, prio=self.prio,
-                         handle=self.mark, flowid=self.classid)
+        tools.filter_add(self._interface, parent=self._root.classid,
+                         prio=self.prio, handle=self.mark, flowid=self.classid)
 
     def _add_qdisc(self):
         raise NotImplemented
@@ -240,8 +276,7 @@ class _BasicFilterHTBClass(BasicHTBClass):
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        if auto_quantum:
-            self._check_quantum()
+        self.compute(auto_quantum=auto_quantum)
         self._add_class()
         self._add_qdisc()
         self._add_filter()
