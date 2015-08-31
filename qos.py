@@ -114,8 +114,4 @@ if __name__ == '__main__':
         from pythonic_rules_parser import setup_qos, get_ifnames
 
     # Execute correct function, or print usage
-    try:
-        args.func()
-    except AttributeError:
-        parser.print_usage()
-        sys.exit(1)
+    args.func()
