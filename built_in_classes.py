@@ -36,19 +36,14 @@ class EmptyHTBClass():
     _interface = None
     #: class id
     classid = None
-    #: rate: If rate is an integer, will be used directly. Can also be a
-    # tupple to set a relative rate, equals to a % of the parent class rate:
-    # (percentage, rate_min, rate_max). The root class cannot have a relative
-    # rate.
-    rate = None
-    #: computed rate. used to store the real rate if it is relative
+    #: store the rate as it was defined during the init
     _rate = None
-    #: ceil
-    ceil = None
-    #: burst
-    burst = None
-    #: cburst
-    cburst = None
+    #: store the ceil as it was defined during the init
+    _ceil = None
+    #: store the burst as it was defined during the init
+    _burst = None
+    #: store the cburst as it was defined during the init
+    _cburst = None
     #: quantum (optional)
     quantum = None
     #: priority
@@ -56,17 +51,134 @@ class EmptyHTBClass():
     #: children class which will be attached to this class
     children = None
 
-    def __init__(self, classid=None, rate=None, ceil=None,
-                 burst=None, cburst=None, quantum=None, prio=None,
-                 children=None, *args, **kwargs):
-        self.classid = classid if classid is not None else self.classid
-        self.rate = rate if rate is not None else self.rate
-        self.ceil = ceil if ceil is not None else self.ceil
-        self.burst = burst if burst is not None else self.burst
-        self.cburst = cburst if cburst is not None else self.cburst
-        self.quantum = quantum if quantum is not None else self.quantum
-        self.prio = prio if prio is not None else self.prio
-        self.children = children if children is not None else []
+    def _compute_speeds(self, attr):
+        """
+        Compute the attribute value if it's relative
+
+        :param attr: attribute associated to the speed to compute
+        :type attr: tuple of 2 or 3 items: (percentage of the parent value,
+                    min, [max])
+        :return computed_speed: integer corresponding to the computed speed
+        """
+        if self._parent is None:
+            raise NoParentException(
+                str(attr) + " is relative and asked to be computed, but class "
+                " has no parent."
+            )
+        parent_speed = getattr(self._parent, attr)
+        try:
+            coeff, speed_min, speed_max = getattr(self, "_" + attr)
+        except ValueError:
+            coeff, speed_min = getattr(self, "_" + attr)
+            speed_max = parent_speed
+        return int(
+            min(max(parent_speed * coeff/100, speed_min), speed_max)
+        )
+
+    @property
+    def rate(self):
+        """
+        Getter for rate
+
+        If _rate is an integer, will be used directly. Can also be a
+        tupple to set a relative rate, equals to a % of the parent class rate:
+        (percentage, rate_min, rate_max). The root class cannot have a relative
+        rate.
+        """
+        return (self._compute_speeds("rate") if type(self._rate) is tuple
+                else self._rate)
+
+    @rate.setter
+    def rate(self, value):
+        """
+        Setter for rate
+
+        If rate is an integer, will be used directly. Can also be a
+        tupple to set a relative rate, equals to a % of the parent class rate:
+        (percentage, rate_min, rate_max). The root class cannot have a relative
+        rate.
+        """
+        self._rate = value
+
+    @property
+    def ceil(self):
+        """
+        Getter for ceil
+
+        If _ceil is an integer, will be used directly. Can also be a
+        tupple to set a relative ceil, equals to a % of the parent class ceil:
+        (percentage, ceil_min, ceil_max). The root class cannot have a relative
+        ceil.
+        """
+        return (self._compute_speeds("ceil") if type(self._ceil) is tuple
+                else self._ceil)
+
+    @ceil.setter
+    def ceil(self, value):
+        """
+        Setter for ceil
+
+        If ceil is an integer, will be used directly. Can also be a
+        tupple to set a relative ceil, equals to a % of the parent class ceil:
+        (percentage, ceil_min, ceil_max). The root class cannot have a relative
+        ceil.
+        """
+        self._ceil = value
+
+    def _getter_burst_cburst(self, attr):
+        """
+        Common getter for burst or cburst
+
+        They can be a callback or a fixed value: If attr is an integer, its
+        value will be returned directly.  Otherwise, if it is a tuple or a
+        function, it will be considered as a callback.
+
+        :param attr: attr to get (self._cburst or self._burst)
+        :return: result of the callback if any, otherwise the direct value of
+                 the attribute
+        """
+        if type(attr) is not tuple:
+            try:
+                return attr()
+            except TypeError:
+                return attr
+        if len(attr) == 3:
+            callback, args, kwargs = attr
+            return callback(*args, **kwargs)
+        elif len(attr) == 2:
+            callback, args = attr
+            return callback(*args)
+        else:
+            callback = attr
+            return callback()
+
+    @property
+    def burst(self):
+        """
+        Burst can be a callback or a fixed value
+
+        If _burst is an integer, its value will be returned directly.
+        Otherwise, if it is a tuple, it will be considered as a callback.
+        """
+        return self._getter_burst_cburst(self._burst)
+
+    @burst.setter
+    def burst(self, value):
+        self._burst = value
+
+    @property
+    def cburst(self):
+        """
+        CBurst can be a callback or a fixed value
+
+        If _burst is an integer, its value will be returned directly.
+        Otherwise, if it is a tuple, it will be considered as a callback.
+        """
+        return self._getter_burst_cburst(self._cburst)
+
+    @cburst.setter
+    def cburst(self, value):
+        self._cburst = value
 
     def _add_class(self):
         pass
@@ -141,35 +253,20 @@ class EmptyHTBClass():
         Compute class rate and ceil (compute when they are relatives, otherwise
         just copies the value defined). Computes the quantum.
         """
-        def _compute_speeds(tuple_to_compute, parent_value):
-            try:
-                coeff, rate_min, rate_max = tuple_to_compute
-            except ValueError:
-                coeff, rate_min = tuple_to_compute
-                rate_max = parent_value
-            return int(
-                min(max(parent_value * coeff/100, rate_min), rate_max)
-            )
-
-        exception_msg = (" is relative and asked to be computed, but "
-                         "class has no parent.")
-
-        if type(self.rate) is tuple:
-            if self._parent is None:
-                raise NoParentException("Rate " + exception_msg)
-            self._rate = _compute_speeds(self.rate, self._parent.rate)
-        else:
-            self._rate = self.rate
-
-        if type(self.ceil) is tuple:
-            if self._parent is None:
-                raise NoParentException("Ceil " + exception_msg)
-            self._ceil = _compute_speeds(self.ceil, self._parent.ceil)
-        else:
-            self._ceil = self.ceil
-
         if auto_quantum:
             self._check_quantum()
+
+    def __init__(self, classid=None, rate=None, ceil=None,
+                 burst=None, cburst=None, quantum=None, prio=None,
+                 children=None, *args, **kwargs):
+        self.classid = classid if classid is not None else self.classid
+        self._rate = rate if rate is not None else self._rate
+        self._ceil = ceil if ceil is not None else self._ceil
+        self._burst = burst if burst is not None else self._burst
+        self._cburst = cburst if cburst is not None else self._cburst
+        self.quantum = quantum if quantum is not None else self.quantum
+        self.prio = prio if prio is not None else self.prio
+        self.children = children if children is not None else []
 
 
 class BasicHTBClass(EmptyHTBClass):
@@ -182,7 +279,7 @@ class BasicHTBClass(EmptyHTBClass):
 
         Kernel warnings that quantum is too high if it's superior to 18 000
         """
-        if self._rate is None or self._interface is None:
+        if self.rate is None or self._interface is None:
             return
 
         # Adding 14 to the MTU to handle the ethernet overhead
@@ -194,8 +291,8 @@ class BasicHTBClass(EmptyHTBClass):
         Add class to the interface
         """
         tools.class_add(self._interface, parent=self._parent.classid,
-                        classid=self.classid, rate=self._rate,
-                        ceil=self._ceil, burst=self.burst, cburst=self.cburst,
+                        classid=self.classid, rate=self.rate,
+                        ceil=self.ceil, burst=self.burst, cburst=self.cburst,
                         prio=self.prio, quantum=self.quantum)
 
 
