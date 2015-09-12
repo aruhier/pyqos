@@ -75,8 +75,7 @@ class EmptyHTBClass():
             min(max(parent_speed * coeff/100, speed_min), speed_max)
         )
 
-    @property
-    def rate(self):
+    def _get_rate(self, obj=None):
         """
         Getter for rate
 
@@ -88,8 +87,7 @@ class EmptyHTBClass():
         return (self._compute_speeds("rate") if type(self._rate) is tuple
                 else self._rate)
 
-    @rate.setter
-    def rate(self, value):
+    def _set_rate(self, obj=None, value=None):
         """
         Setter for rate
 
@@ -100,8 +98,7 @@ class EmptyHTBClass():
         """
         self._rate = value
 
-    @property
-    def ceil(self):
+    def _get_ceil(self, obj=None):
         """
         Getter for ceil
 
@@ -113,8 +110,7 @@ class EmptyHTBClass():
         return (self._compute_speeds("ceil") if type(self._ceil) is tuple
                 else self._ceil)
 
-    @ceil.setter
-    def ceil(self, value):
+    def _set_ceil(self, obj=None, value=None):
         """
         Setter for ceil
 
@@ -152,8 +148,7 @@ class EmptyHTBClass():
             callback = attr
             return callback()
 
-    @property
-    def burst(self):
+    def _get_burst(self, obj=None):
         """
         Burst can be a callback or a fixed value
 
@@ -162,12 +157,10 @@ class EmptyHTBClass():
         """
         return self._getter_burst_cburst(self._burst)
 
-    @burst.setter
-    def burst(self, value):
+    def _set_burst(self, obj=None, value=None):
         self._burst = value
 
-    @property
-    def cburst(self):
+    def _get_cburst(self, obj=None):
         """
         CBurst can be a callback or a fixed value
 
@@ -176,9 +169,27 @@ class EmptyHTBClass():
         """
         return self._getter_burst_cburst(self._cburst)
 
-    @cburst.setter
-    def cburst(self, value):
+    def _set_cburst(self, obj=None, value=None):
         self._cburst = value
+
+    def _init_properties(self):
+        def set_property(attribute):
+            setattr(
+                self.__class__, attribute,
+                property(
+                    getattr(self, "_get_" + attribute),
+                    getattr(self, "_set_" + attribute)
+                )
+            )
+
+        for attribute in ("rate", "ceil", "burst", "cburst"):
+            try:
+                if not isinstance(getattr(type(self), attribute), property):
+                    tmp = getattr(self, attribute)
+                    set_property(attribute)
+                    setattr(self, attribute, tmp)
+            except AttributeError:
+                set_property(attribute)
 
     def _add_class(self):
         pass
@@ -259,11 +270,16 @@ class EmptyHTBClass():
     def __init__(self, classid=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
                  children=None, *args, **kwargs):
+        self._init_properties()
         self.classid = classid if classid is not None else self.classid
-        self._rate = rate if rate is not None else self._rate
-        self._ceil = ceil if ceil is not None else self._ceil
-        self._burst = burst if burst is not None else self._burst
-        self._cburst = cburst if cburst is not None else self._cburst
+        if rate is not None:
+            self.rate = rate
+        if ceil is not None:
+            self.ceil = ceil
+        if burst is not None:
+            self.burst = burst
+        if cburst is not None:
+            self.cburst = cburst
         self.quantum = quantum if quantum is not None else self.quantum
         self.prio = prio if prio is not None else self.prio
         self.children = children if children is not None else []
