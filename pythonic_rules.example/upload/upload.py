@@ -2,11 +2,8 @@
 # Author: Anthony Ruhier
 # QoS for upload
 
-from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
 from built_in_classes import PFIFOClass, SFQClass
-
-UPLOAD = INTERFACES["public_if"]["speed"]
 
 
 class Interactive(PFIFOClass):
@@ -19,10 +16,10 @@ class Interactive(PFIFOClass):
     classid = "1:100"
     prio = 10
     mark = 100
-    rate = UPLOAD * 10/100
-    ceil = UPLOAD * 75/100
-    burst = burst_formula(rate)
-    cburst = cburst_formula(rate, burst)
+    rate = 3000
+    ceil = (75,)
+    burst = (burst_formula,)
+    cburst = (cburst_formula,)
 
 
 class TCPACK(SFQClass):
@@ -35,10 +32,10 @@ class TCPACK(SFQClass):
     classid = "1:200"
     prio = 20
     mark = 200
-    rate = UPLOAD * 50/100
-    ceil = UPLOAD
-    burst = burst_formula(rate)
-    cburst = cburst_formula(rate, burst)
+    rate = (50, 0, 200)
+    ceil = (100,)
+    burst = (burst_formula,)
+    cburst = (cburst_formula,)
 
 
 class SSH(SFQClass):
@@ -52,10 +49,10 @@ class SSH(SFQClass):
     classid = "1:300"
     prio = 30
     mark = 300
-    rate = UPLOAD * 10/100
-    ceil = UPLOAD
-    burst = burst_formula(rate)
-    cburst = cburst_formula(rate, burst)
+    rate = (10,)
+    ceil = (100,)
+    burst = (burst_formula,)
+    cburst = (cburst_formula,)
 
 
 class HTTP(SFQClass):
@@ -65,10 +62,10 @@ class HTTP(SFQClass):
     classid = "1:400"
     prio = 40
     mark = 400
-    rate = UPLOAD * 20/100
-    ceil = UPLOAD
-    burst = burst_formula(rate)
-    cburst = cburst_formula(rate, burst)
+    rate = (20,)
+    ceil = (100,)
+    burst = (burst_formula,)
+    cburst = (cburst_formula,)
 
 
 class Default(SFQClass):
@@ -78,7 +75,7 @@ class Default(SFQClass):
     classid = "1:1000"
     prio = 100
     mark = 1000
-    rate = UPLOAD * 60/100
-    ceil = UPLOAD
-    burst = burst_formula(rate)
-    cburst = cburst_formula(rate, burst)
+    rate = (60,)
+    ceil = (100,)
+    burst = (burst_formula,)
+    cburst = (cburst_formula,)

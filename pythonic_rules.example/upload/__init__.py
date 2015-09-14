@@ -14,10 +14,10 @@ def apply_qos():
         qdisc_prefix_id="1:",
         default=1500
     )
-    root_class.add_child(Interactive())
-    root_class.add_child(TCPACK())
-    root_class.add_child(SSH())
-    root_class.add_child(HTTP())
+    # root_class.add_child(Interactive())
+    # root_class.add_child(TCPACK())
+    # root_class.add_child(SSH())
+    # root_class.add_child(HTTP())
     root_class.add_child(Default())
 
     root_class.apply_qos()
