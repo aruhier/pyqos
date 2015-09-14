@@ -28,10 +28,6 @@ class EmptyHTBClass():
     Can be useful to simulate, for example, a class already handled by another
     tool in the system.
     """
-    #: parent object
-    _parent = None
-    #: root class: class directly attached to the interface
-    _root = None
     #: interface
     _interface = None
     #: class id
@@ -44,6 +40,8 @@ class EmptyHTBClass():
     _burst = None
     #: store the cburst as it was defined during the init
     _cburst = None
+    #: parent object
+    parent = None
     #: quantum (optional)
     quantum = None
     #: priority
@@ -60,14 +58,14 @@ class EmptyHTBClass():
                     min, [max])
         :return computed_speed: integer corresponding to the computed speed
         """
-        if self._parent is None:
+        if self.parent is None:
             raise NoParentException(
                 str(attr) + " is relative and asked to be computed, but class "
                 " has no parent."
             )
-        parent_speed = getattr(self._parent, attr)
+        parent_speed = getattr(self.parent, attr)
         if attr is "ceil" and parent_speed is None:
-            parent_speed = getattr(self._parent, "rate")
+            parent_speed = getattr(self.parent, "rate")
         relative_rate = getattr(self, "_" + attr)
         if relative_rate == 3:
             coeff, speed_min, speed_max = relative_rate
@@ -79,6 +77,28 @@ class EmptyHTBClass():
         return int(
             min(max(parent_speed * coeff/100, speed_min), speed_max)
         )
+
+    @property
+    def root(self):
+        """
+        Get the root of the current branch
+        """
+        if self.parent is None:
+            raise NoParentException(
+                "The class is not linked to a root class."
+            )
+        return self.parent.root
+
+    @property
+    def interface(self):
+        """
+        Get the interface of the current branch
+        """
+        if self.parent is None:
+            raise NoParentException(
+                "The class is not linked to a root class."
+            )
+        return self.parent.interface
 
     def _get_rate(self, obj=None):
         """
@@ -212,24 +232,8 @@ class EmptyHTBClass():
         """
         Add a class as children
         """
-        class_child.set_parent_root(parent=self)
-        class_child.recursive_parent_change(self._root, self._interface)
+        class_child.parent = self
         self.children.append(class_child)
-
-    def recursive_parent_change(self, root=None, interface=None):
-        """
-        When rattaching a class to another class, have to change recursively
-        the interface and root id of all children
-
-        :param root: root id
-        :param interface: interface of the parent
-        """
-        if root is not None:
-            self._root = root
-        if interface is not None:
-            self._interface = interface
-        for child in self.children:
-            child.recursive_parent_change(root, interface)
 
     def apply_qos(self, auto_quantum=True):
         """
@@ -242,26 +246,6 @@ class EmptyHTBClass():
         self._add_class()
         for child in self.children:
             child.apply_qos(auto_quantum=auto_quantum)
-
-    def set_parent_root(self, parent=None, root=None):
-        """
-        Set root and/or parent
-
-        param parent: parent class id
-        param root: root class id
-        """
-        if parent:
-            self._parent = parent
-        if root:
-            self._root = root
-
-    def set_interface(self, interface):
-        """
-        Set interface
-
-        :param interface: interface to attach the class
-        """
-        self._interface = interface
 
     def compute(self, auto_quantum=True):
         """
@@ -301,18 +285,18 @@ class BasicHTBClass(EmptyHTBClass):
 
         Kernel warnings that quantum is too high if it's superior to 18 000
         """
-        if self.rate is None or self._interface is None:
+        if self.rate is None:
             return
 
         # Adding 14 to the MTU to handle the ethernet overhead
-        mtu = tools.get_mtu(self._interface) + 14
+        mtu = tools.get_mtu(self.interface) + 14
         self.quantum = mtu if self.quantum is None else self.quantum
 
     def _add_class(self):
         """
         Add class to the interface
         """
-        tools.class_add(self._interface, parent=self._parent.classid,
+        tools.class_add(self.interface, parent=self.parent.classid,
                         classid=self.classid, rate=self.rate,
                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
                         prio=self.prio, quantum=self.quantum)
@@ -339,16 +323,30 @@ class RootHTBClass(BasicHTBClass):
         self.default = default
         self.r2q = r2q if r2q is not None else self.r2q
         qdisc_object = EmptyObject(classid=str(self.qdisc_prefix_id) + "0")
-        self._parent = qdisc_object
+        self.parent = qdisc_object
         self._root = qdisc_object
         self.classid = str(self.qdisc_prefix_id) + "1"
         super().__init__(*args, **kwargs)
+
+    @property
+    def root(self):
+        """
+        Return the qdisc class id
+        """
+        return self._root
+
+    @property
+    def interface(self):
+        """
+        Return the interface name
+        """
+        return self._interface
 
     def _add_qdisc(self):
         """
         Add the root qdisc
         """
-        tools.qdisc_add(self._interface, self.qdisc_prefix_id, self.algorithm,
+        tools.qdisc_add(self.interface, self.qdisc_prefix_id, self.algorithm,
                         default=self.default, r2q=self.r2q)
 
     def apply_qos(self, auto_quantum=True):
@@ -382,7 +380,7 @@ class _BasicFilterHTBClass(BasicHTBClass):
         """
         Add filter to the class
         """
-        tools.filter_add(self._interface, parent=self._root.classid,
+        tools.filter_add(self.interface, parent=self.root.classid,
                          prio=self.prio, handle=self.mark, flowid=self.classid)
 
     def _add_qdisc(self):
@@ -430,8 +428,8 @@ class FQCodelClass(_BasicFilterHTBClass):
 
     def _add_qdisc(self):
         if self.codel_quantum is None:
-            self.codel_quantum = tools.get_mtu(self._interface)
-        tools.qdisc_add(self._interface, parent=self.classid,
+            self.codel_quantum = tools.get_mtu(self.interface)
+        tools.qdisc_add(self.interface, parent=self.classid,
                         handle=tools.get_child_qdiscid(self.classid),
                         algorithm="fq_codel", limit=self.limit,
                         flows=self.flows, target=self.target,
@@ -451,7 +449,7 @@ class SFQClass(_BasicFilterHTBClass):
         super().__init__(*args, **kwargs)
 
     def _add_qdisc(self):
-        tools.qdisc_add(self._interface, parent=self.classid,
+        tools.qdisc_add(self.interface, parent=self.classid,
                         handle=tools.get_child_qdiscid(self.classid),
                         algorithm="sfq", perturb=self.perturb)
 
@@ -461,6 +459,6 @@ class PFIFOClass(_BasicFilterHTBClass):
     Basic filtering class with a PFIFO qdisc built in
     """
     def _add_qdisc(self):
-        tools.qdisc_add(self._interface, parent=self.classid,
+        tools.qdisc_add(self.interface, parent=self.classid,
                         handle=tools.get_child_qdiscid(self.classid),
                         algorithm="pfifo")
