@@ -3,20 +3,19 @@
 # Magic formulas for QoS
 
 
-def burst_formula(rate):
+def burst_formula(obj):
     """
     Cisco formula customized to calculates the burst
 
-    :param rate: rate of the class for the burst to calculate
+    :param obj: object to target. Get the rate value from it.
     """
-    return 0.5 * rate/8
+    return 0.5 * obj.rate/8
 
 
-def cburst_formula(rate, burst):
+def cburst_formula(obj):
     """
     Cisco formula customized to calculates the cburst
 
-    :param rate: rate of the class
-    :param burst: burst of the class
+    :param obj: object to target. Get the rate and burst values from it.
     """
-    return 1.5 * rate/8 + burst
+    return 1.5 * obj.rate/8 + obj.burst
