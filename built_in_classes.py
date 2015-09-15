@@ -43,7 +43,7 @@ class EmptyHTBClass():
     #: parent object
     parent = None
     #: quantum (optional)
-    quantum = None
+    _quantum = None
     #: priority
     prio = None
     #: children class which will be attached to this class
@@ -99,6 +99,13 @@ class EmptyHTBClass():
                 "The class is not linked to a root class."
             )
         return self.parent.interface
+
+    @property
+    def quantum(self):
+        """
+        Quantum value
+        """
+        return self._quantum
 
     def _get_rate(self, obj=None):
         """
@@ -220,14 +227,6 @@ class EmptyHTBClass():
     def _add_class(self):
         pass
 
-    def _check_quantum(self):
-        """
-        Check if the quantum is not too high
-
-        Kernel warnings that quantum is too high if it's superior to 18 000
-        """
-        pass
-
     def add_child(self, class_child):
         """
         Add a class as children
@@ -242,20 +241,10 @@ class EmptyHTBClass():
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        self.compute(auto_quantum=auto_quantum)
+        self.auto_quantum = auto_quantum
         self._add_class()
         for child in self.children:
             child.apply_qos(auto_quantum=auto_quantum)
-
-    def compute(self, auto_quantum=True):
-        """
-        Compute values that can/need to be
-
-        Compute class rate and ceil (compute when they are relatives, otherwise
-        just copies the value defined). Computes the quantum.
-        """
-        if auto_quantum:
-            self._check_quantum()
 
     def __init__(self, classid=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
@@ -270,7 +259,7 @@ class EmptyHTBClass():
             self.burst = burst
         if cburst is not None:
             self.cburst = cburst
-        self.quantum = quantum if quantum is not None else self.quantum
+        self._quantum = quantum
         self.prio = prio if prio is not None else self.prio
         self.children = children if children is not None else []
 
@@ -279,18 +268,17 @@ class BasicHTBClass(EmptyHTBClass):
     """
     Basic class
     """
-    def _check_quantum(self):
-        """
-        Check if the quantum is not too high
 
-        Kernel warnings that quantum is too high if it's superior to 18 000
+    @property
+    def quantum(self):
         """
-        if self.rate is None:
-            return
-
-        # Adding 14 to the MTU to handle the ethernet overhead
-        mtu = tools.get_mtu(self.interface) + 14
-        self.quantum = mtu if self.quantum is None else self.quantum
+        Quantum value
+        """
+        try:
+            if self.auto_quantum and self._quantum is None:
+                return tools.get_mtu(self.interface) + 14
+        except AttributeError:
+            return self._quantum
 
     def _add_class(self):
         """
@@ -358,7 +346,6 @@ class RootHTBClass(BasicHTBClass):
             raise BadAttributeValueException(
                 "Rate cannot be relative for a root class"
             )
-        self.compute()
         self._add_qdisc()
         return super().apply_qos(
             auto_quantum=(auto_quantum and self.r2q is None)
@@ -393,7 +380,7 @@ class _BasicFilterHTBClass(BasicHTBClass):
         The function is recursive, so it will apply the qos of all children
         too.
         """
-        self.compute(auto_quantum=auto_quantum)
+        self.auto_quantum = auto_quantum
         self._add_class()
         self._add_qdisc()
         self._add_filter()
