@@ -13,7 +13,7 @@ try:
 except ImportError:
     DEBUG = False
 
-import tools
+from pyqos import tools
 
 
 def run_as_root():

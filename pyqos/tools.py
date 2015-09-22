@@ -6,7 +6,8 @@ import socket
 import subprocess
 import struct
 import logging
-from decorators import multiple_interfaces
+from .decorators import multiple_interfaces
+
 
 def get_mtu(ifname):
     """

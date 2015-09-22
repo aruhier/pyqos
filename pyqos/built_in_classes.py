@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
-import tools
-from exceptions import BadAttributeValueException, NoParentException
+from . import tools
+from .exceptions import BadAttributeValueException, NoParentException
 
 
 class EmptyObject():
