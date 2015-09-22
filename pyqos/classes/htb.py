@@ -1,25 +1,10 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
-from . import tools
+from pyqos import tools
 from pyqos.backend import tc
-from .exceptions import BadAttributeValueException, NoParentException
-
-
-class EmptyObject():
-    """
-    Object that does nothing, but "nothing" can be useful
-
-    Base object to simulate, for example, something already handled by another
-    tool in the system. Just set as attribute everything it receives in
-    parameter during the construction.
-    """
-    def __init__(self, **kwargs):
-        """
-        Set as attribute everything received
-        """
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
+from pyqos.exceptions import BadAttributeValueException, NoParentException
+from . import EmptyObject
 
 
 class EmptyHTBClass():
