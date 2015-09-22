@@ -14,6 +14,7 @@ except ImportError:
     DEBUG = False
 
 from pyqos import tools
+from pyqos.backend import tc
 
 
 def run_as_root():
@@ -41,16 +42,16 @@ def reset_qos():
     run_as_root()
     print("Removing tc rules")
     ifnames = get_ifnames()
-    tools.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
+    tc.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
     return
 
 
 def show_qos():
     ifnames = get_ifnames()
     print("\n\t QDiscs details\n\t================\n")
-    tools.qdisc_show(ifnames, "details")
+    tc.qdisc_show(ifnames, "details")
     print("\n\t QDiscs stats\n\t==============\n")
-    tools.qdisc_show(ifnames, "details")
+    tc.qdisc_show(ifnames, "details")
 
 
 def set_debug(level):

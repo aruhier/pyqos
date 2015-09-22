@@ -2,6 +2,7 @@
 # Author: Anthony Ruhier
 
 from . import tools
+from pyqos.backend import tc
 from .exceptions import BadAttributeValueException, NoParentException
 
 
@@ -312,10 +313,10 @@ class BasicHTBClass(EmptyHTBClass):
         """
         Add class to the interface
         """
-        tools.class_add(self._interface, parent=self._parent.classid,
-                        classid=self.classid, rate=self.rate,
-                        ceil=self.ceil, burst=self.burst, cburst=self.cburst,
-                        prio=self.prio, quantum=self.quantum)
+        tc.qos_class_add(self._interface, parent=self._parent.classid,
+                         classid=self.classid, rate=self.rate,
+                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
+                         prio=self.prio, quantum=self.quantum)
 
 
 class RootHTBClass(BasicHTBClass):
@@ -348,8 +349,8 @@ class RootHTBClass(BasicHTBClass):
         """
         Add the root qdisc
         """
-        tools.qdisc_add(self._interface, self.qdisc_prefix_id, self.algorithm,
-                        default=self.default, r2q=self.r2q)
+        tc.qdisc_add(self._interface, self.qdisc_prefix_id, self.algorithm,
+                     default=self.default, r2q=self.r2q)
 
     def apply_qos(self, auto_quantum=True):
         """
@@ -382,8 +383,8 @@ class _BasicFilterHTBClass(BasicHTBClass):
         """
         Add filter to the class
         """
-        tools.filter_add(self._interface, parent=self._root.classid,
-                         prio=self.prio, handle=self.mark, flowid=self.classid)
+        tc.filter_add(self._interface, parent=self._root.classid,
+                      prio=self.prio, handle=self.mark, flowid=self.classid)
 
     def _add_qdisc(self):
         raise NotImplemented
@@ -431,12 +432,12 @@ class FQCodelClass(_BasicFilterHTBClass):
     def _add_qdisc(self):
         if self.codel_quantum is None:
             self.codel_quantum = tools.get_mtu(self._interface)
-        tools.qdisc_add(self._interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="fq_codel", limit=self.limit,
-                        flows=self.flows, target=self.target,
-                        interval=self.interval,
-                        quantum=self.codel_quantum)
+        tc.qdisc_add(
+            self._interface, parent=self.classid,
+            handle=tools.get_child_qdiscid(self.classid), algorithm="fq_codel",
+            limit=self.limit, flows=self.flows, target=self.target,
+            interval=self.interval, quantum=self.codel_quantum
+        )
 
 
 class SFQClass(_BasicFilterHTBClass):
@@ -451,9 +452,9 @@ class SFQClass(_BasicFilterHTBClass):
         super().__init__(*args, **kwargs)
 
     def _add_qdisc(self):
-        tools.qdisc_add(self._interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="sfq", perturb=self.perturb)
+        tc.qdisc_add(self._interface, parent=self.classid,
+                     handle=tools.get_child_qdiscid(self.classid),
+                     algorithm="sfq", perturb=self.perturb)
 
 
 class PFIFOClass(_BasicFilterHTBClass):
@@ -461,6 +462,6 @@ class PFIFOClass(_BasicFilterHTBClass):
     Basic filtering class with a PFIFO qdisc built in
     """
     def _add_qdisc(self):
-        tools.qdisc_add(self._interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="pfifo")
+        tc.qdisc_add(self._interface, parent=self.classid,
+                     handle=tools.get_child_qdiscid(self.classid),
+                     algorithm="pfifo")
