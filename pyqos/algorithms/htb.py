@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
+import inspect
+
 from pyqos import tools
 from pyqos.backend import tc
 from pyqos.exceptions import BadAttributeValueException, NoParentException
 from . import EmptyObject
+from .classless_qdiscs import FQCodel, PFIFO, SFQ
 
 
 class EmptyHTBClass():
@@ -14,8 +17,6 @@ class EmptyHTBClass():
     Can be useful to simulate, for example, a class already handled by another
     tool in the system.
     """
-    #: interface
-    _interface = None
     #: class id
     classid = None
     #: store the rate as it was defined during the init
@@ -250,7 +251,7 @@ class EmptyHTBClass():
         self.children = children if children is not None else []
 
 
-class BasicHTBClass(EmptyHTBClass):
+class HTBClass(EmptyHTBClass):
     """
     Basic class
     """
@@ -276,10 +277,12 @@ class BasicHTBClass(EmptyHTBClass):
                          prio=self.prio, quantum=self.quantum)
 
 
-class RootHTBClass(BasicHTBClass):
+class RootHTBClass(HTBClass):
     """
     Root tc class, directly attached to the interface
     """
+    #: interface
+    _interface = None
     #: main algorithm to use for the qdisc
     algorithm = None
     #: qdisc prefix
@@ -338,15 +341,31 @@ class RootHTBClass(BasicHTBClass):
         )
 
 
-class _BasicFilterHTBClass(BasicHTBClass):
+class HTBFilter(HTBClass):
     """
     Basic class with filtering
     """
     #: mark catch by the class
     mark = None
+    #: qdisc associated. Can be a class of an already initialized qdisc.
+    qdisc = None
+    #: dict used during the construction **ONLY**, used as a kwargs to set the
+    #  qdisc attributes.
+    qdisc_kwargs = dict()
 
-    def __init__(self, mark=None, *args, **kwargs):
+    def __init__(self, mark=None, qdisc=None, qdisc_kwargs=None, *args,
+                 **kwargs):
         self.mark = mark if mark is not None else self.mark
+        qdisc = qdisc if qdisc is not None else self.qdisc
+        self.qdisc_kwargs = (qdisc_kwargs if qdisc_kwargs is not None
+                             else self.qdisc_kwargs)
+        if inspect.isclass(qdisc):
+            self.qdisc = qdisc(parent=self, **self.qdisc_kwargs)
+        else:
+            self.qdisc = qdisc
+            self.qdisc.parent = self
+            for attr, value in self.qdisc_kwargs.items():
+                setattr(qdisc, attr, value)
         super().__init__(*args, **kwargs)
 
     def _add_filter(self):
@@ -355,9 +374,6 @@ class _BasicFilterHTBClass(BasicHTBClass):
         """
         tc.filter_add(self.interface, parent=self.root.classid,
                       prio=self.prio, handle=self.mark, flowid=self.classid)
-
-    def _add_qdisc(self):
-        raise NotImplemented
 
     def apply_qos(self, auto_quantum=True):
         """
@@ -368,70 +384,30 @@ class _BasicFilterHTBClass(BasicHTBClass):
         """
         self.auto_quantum = auto_quantum
         self._add_class()
-        self._add_qdisc()
+        self.qdisc.apply()
         self._add_filter()
         for child in self.children:
             child.apply_qos(auto_quantum=auto_quantum)
 
 
-class FQCodelClass(_BasicFilterHTBClass):
+class HTBFilterFQCodel(HTBFilter):
     """
-    HTB class with a fq_codel qdisc builtin
+    Lazy wrapper to get an HTB class with a filter and a FQCodel qdisc already
+    set
     """
-    #: when this limit is reached, incoming packets are dropped
-    limit = None
-    #: is the number of flows into which the incoming packets are classified
-    flows = None
-    #: is the acceptable minimum standing/persistent queue delay
-    target = None
-    #: is used to ensure that the measured minimum delay does not become too
-    #  stale
-    interval = None
-    #: is the number of bytes used as 'deficit' in the fair queuing algorithm
-    codel_quantum = None
-
-    def __init__(self, limit=None, flows=None, target=None, interval=None,
-                 codel_quantum=None, *args, **kwargs):
-        self.limit = limit
-        self.flows = flows
-        self.target = target
-        self.interval = interval
-        self.codel_quantum = codel_quantum
-        super().__init__(*args, **kwargs)
-
-    def _add_qdisc(self):
-        if self.codel_quantum is None:
-            self.codel_quantum = tools.get_mtu(self.interface)
-        tc.qdisc_add(
-            self.interface, parent=self.classid,
-            handle=tools.get_child_qdiscid(self.classid), algorithm="fq_codel",
-            limit=self.limit, flows=self.flows, target=self.target,
-            interval=self.interval, quantum=self.codel_quantum
-        )
+    qdisc = FQCodel
 
 
-class SFQClass(_BasicFilterHTBClass):
+class HTBFilterPFIFO(HTBFilter):
     """
-    HTB class with a SFQ qdisc builtin
+    Lazy wrapper to get an HTB class with a filter and a PFIFO qdisc already
+    set
     """
-    #: perturb parameter for sfq
-    perturb = None
-
-    def __init__(self, perturb=10, *args, **kwargs):
-        self.perturb = perturb
-        super().__init__(*args, **kwargs)
-
-    def _add_qdisc(self):
-        tc.qdisc_add(self.interface, parent=self.classid,
-                     handle=tools.get_child_qdiscid(self.classid),
-                     algorithm="sfq", perturb=self.perturb)
+    qdisc = PFIFO
 
 
-class PFIFOClass(_BasicFilterHTBClass):
+class HTBFilterSFQ(HTBFilter):
     """
-    Basic filtering class with a PFIFO qdisc built in
+    Lazy wrapper to get an HTB class with a filter and a SFQ qdisc already set
     """
-    def _add_qdisc(self):
-        tc.qdisc_add(self.interface, parent=self.classid,
-                     handle=tools.get_child_qdiscid(self.classid),
-                     algorithm="pfifo")
+    qdisc = SFQ
