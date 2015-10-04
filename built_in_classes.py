@@ -68,14 +68,14 @@ class EmptyHTBClass():
         parent_speed = getattr(self._parent, attr)
         if attr is "ceil" and parent_speed is None:
             parent_speed = getattr(self._parent, "rate")
-        relative_rate = getattr(self, "_" + attr)
-        if relative_rate == 3:
-            coeff, speed_min, speed_max = relative_rate
-        elif len(attr) == 2:
-            coeff, speed_min = relative_rate
+        relative_speed = getattr(self, "_" + attr)
+        if len(relative_speed) == 3:
+            coeff, speed_min, speed_max = relative_speed
+        elif len(relative_speed) == 2:
+            coeff, speed_min = relative_speed
             speed_max = parent_speed
         else:
-            coeff, speed_min, speed_max = relative_rate[0], 0, parent_speed
+            coeff, speed_min, speed_max = relative_speed[0], 0, parent_speed
         return int(
             min(max(parent_speed * coeff/100, speed_min), speed_max)
         )
