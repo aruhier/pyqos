@@ -70,7 +70,7 @@ class _BasicQDisc():
     def _set_classid(self, obj=None, value=None):
         return self._setter_attr_shared_with_parents("classid", value)
 
-    def _init_properties(self, attributes=tuple()):
+    def _init_properties(self, *args):
         """
         Little hack to allow overriding the class and conserving the properties
         without the need of overriding __init__
@@ -84,7 +84,7 @@ class _BasicQDisc():
                 )
             )
 
-        for attribute in attributes:
+        for attribute in args:
             try:
                 if not isinstance(getattr(type(self), attribute), property):
                     tmp = getattr(self, attribute)
@@ -95,7 +95,7 @@ class _BasicQDisc():
 
     def __init__(self, classid=None, parent=None, interface=None, *args,
                  **kwargs):
-        self._init_properties(attributes=("interface", "classid"))
+        self._init_properties("interface", "classid")
         if parent is not None:
             self.parent = parent
         if interface is not None:

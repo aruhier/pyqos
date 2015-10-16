@@ -6,19 +6,17 @@ import inspect
 from pyqos import tools
 from pyqos.backend import tc
 from pyqos.exceptions import BadAttributeValueException, NoParentException
-from . import EmptyObject
+from . import EmptyObject, _BasicQDisc
 from .classless_qdiscs import FQCodel, PFIFO, SFQ
 
 
-class EmptyHTBClass():
+class EmptyHTBClass(_BasicQDisc):
     """
     HTB that does nothing but can be used as parent for example
 
     Can be useful to simulate, for example, a class already handled by another
     tool in the system.
     """
-    #: class id
-    classid = None
     #: store the rate as it was defined during the init
     _rate = None
     #: store the ceil as it was defined during the init
@@ -192,25 +190,6 @@ class EmptyHTBClass():
     def _set_cburst(self, obj=None, value=None):
         self._cburst = value
 
-    def _init_properties(self):
-        def set_property(attribute):
-            setattr(
-                self.__class__, attribute,
-                property(
-                    getattr(self, "_get_" + attribute),
-                    getattr(self, "_set_" + attribute)
-                )
-            )
-
-        for attribute in ("rate", "ceil", "burst", "cburst"):
-            try:
-                if not isinstance(getattr(type(self), attribute), property):
-                    tmp = getattr(self, attribute)
-                    set_property(attribute)
-                    setattr(self, attribute, tmp)
-            except AttributeError:
-                set_property(attribute)
-
     def _add_class(self):
         pass
 
@@ -236,7 +215,7 @@ class EmptyHTBClass():
     def __init__(self, classid=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
                  children=None, *args, **kwargs):
-        self._init_properties()
+        self._init_properties("rate", "ceil", "burst", "cburst")
         self.classid = classid if classid is not None else self.classid
         if rate is not None:
             self.rate = rate
