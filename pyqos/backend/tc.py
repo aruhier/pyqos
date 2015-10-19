@@ -6,7 +6,7 @@ from pyqos.decorators import multiple_interfaces
 
 
 @multiple_interfaces
-def qdisc(interface, action, algorithm, handle=None, parent=None,
+def qdisc(interface, action, algorithm=None, handle=None, parent=None,
           stderr=None, *args, **kwargs):
     """
     Add/change/replace/replace qdisc
@@ -28,7 +28,8 @@ def qdisc(interface, action, algorithm, handle=None, parent=None,
         command += ["parent", parent]
     if handle is not None:
         command += ["handle", str(handle)]
-    command.append(algorithm)
+    if algorithm is not None:
+        command.append(algorithm)
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
@@ -54,7 +55,7 @@ def qdisc_add(interface, handle, algorithm, parent=None, *args,
 
 
 @multiple_interfaces
-def qdisc_del(interface, algorithm, handle=None, parent=None, *args,
+def qdisc_del(interface, algorithm=None, handle=None, parent=None, *args,
               **kwargs):
     """
     Delete qdisc

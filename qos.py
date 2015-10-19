@@ -13,7 +13,6 @@ try:
 except ImportError:
     DEBUG = False
 
-from pyqos import tools
 from pyqos.backend import tc
 
 
@@ -42,7 +41,7 @@ def reset_qos():
     run_as_root()
     print("Removing tc rules")
     ifnames = get_ifnames()
-    tc.qdisc_del(ifnames, "htb", stderr=subprocess.DEVNULL)
+    tc.qdisc_del(ifnames, stderr=subprocess.DEVNULL)
     return
 
 
