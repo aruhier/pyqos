@@ -285,7 +285,6 @@ class HTBClass(EmptyHTBClass):
     """
     Basic class
     """
-
     @property
     def quantum(self):
         """

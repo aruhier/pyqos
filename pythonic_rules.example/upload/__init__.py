@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from config import INTERFACES
-from built_in_classes import RootHTBClass
+from pyqos.algorithms.htb import RootHTBClass
 from .upload import Interactive, TCPACK, SSH, HTTP, Default
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from config import INTERFACES
-from built_in_classes import RootHTBClass
+from pyqos.algorithms.htb import RootHTBClass
 from .download import Interactive, TCP_ack, SSH, HTTP, Default
 
 
