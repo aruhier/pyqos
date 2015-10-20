@@ -24,12 +24,12 @@ class _BasicQDisc():
     """
     Abstract class for QDisc
     """
+    #: id
+    _id = None
     #: interface
     _interface = None
     #: parent object
     parent = None
-    #: classid
-    _classid = None
 
     def _getter_attr_shared_with_parents(self, attr):
         """
@@ -58,25 +58,21 @@ class _BasicQDisc():
             )
         setattr(self, "_" + attr, value)
 
-    def _get_interface(self, obj=None):
+    def _get_id(self, obj=None):
         if obj is not None:
             self = obj
+        return self._getter_attr_shared_with_parents("id")
+
+    def _set_id(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
+        return self._setter_attr_shared_with_parents("id", value)
+
+    def _get_interface(self, obj=None):
         return self._getter_attr_shared_with_parents("interface")
 
     def _set_interface(self, obj=None, value=None):
-        if obj is not None:
-            self = obj
         return self._setter_attr_shared_with_parents("interface", value)
-
-    def _get_classid(self, obj=None):
-        if obj is not None:
-            self = obj
-        return self._getter_attr_shared_with_parents("classid")
-
-    def _set_classid(self, obj=None, value=None):
-        if obj is not None:
-            self = obj
-        return self._setter_attr_shared_with_parents("classid", value)
 
     def _init_properties(self, *args):
         """
@@ -101,15 +97,15 @@ class _BasicQDisc():
             except AttributeError:
                 set_property(attribute)
 
-    def __init__(self, classid=None, parent=None, interface=None, *args,
+    def __init__(self, id=None, parent=None, interface=None, *args,
                  **kwargs):
-        self._init_properties("interface", "classid")
+        self._init_properties("id", "interface")
         if parent is not None:
             self.parent = parent
         if interface is not None:
             self.interface = interface
-        if classid is not None:
-            self.classid = classid
+        if id is not None:
+            self.id = id
 
     def apply(self):
         raise NotImplemented

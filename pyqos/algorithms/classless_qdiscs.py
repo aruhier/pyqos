@@ -35,8 +35,9 @@ class FQCodel(_BasicQDisc):
         if self.codel_quantum is None:
             self.codel_quantum = tools.get_mtu(self.interface)
         tc.qdisc_add(
-            self.interface, parent=self.classid,
-            handle=tools.get_child_qdiscid(self.classid), algorithm="fq_codel",
+            self.interface,
+            parent=self.parent.classid if self.parent else None,
+            handle=self.id, algorithm="fq_codel",
             limit=self.limit, flows=self.flows, target=self.target,
             interval=self.interval, quantum=self.codel_quantum
         )
@@ -47,9 +48,11 @@ class PFIFO(_BasicQDisc):
     PFIFO QDisc
     """
     def apply(self):
-        tc.qdisc_add(self.interface, parent=self.classid,
-                     handle=tools.get_child_qdiscid(self.classid),
-                     algorithm="pfifo")
+        tc.qdisc_add(
+            self.interface,
+            parent=self.parent.classid if self.parent else None,
+            handle=self.id, algorithm="pfifo"
+        )
 
 
 class SFQ(_BasicQDisc):
@@ -64,6 +67,8 @@ class SFQ(_BasicQDisc):
         super().__init__(*args, **kwargs)
 
     def apply(self):
-        tc.qdisc_add(self.interface, parent=self.classid,
-                     handle=tools.get_child_qdiscid(self.classid),
-                     algorithm="sfq", perturb=self.perturb)
+        tc.qdisc_add(
+            self.interface,
+            parent=self.parent.classid if self.parent else None,
+            handle=self.id, algorithm="sfq", perturb=self.perturb
+        )

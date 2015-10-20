@@ -14,54 +14,20 @@ class HTBQdisc(_BasicQDisc):
     """
     Implement the qdisc which will be directly set on the network interface
     """
-    #: prefixid
-    prefixid = None
-    _classid = 0
-    #: default mark to catch
-    _default = None
-    #: r2q, to influe on the quantum (optional)
-    _r2q = None
+    @property
+    def id(self):
+        return str(self.parent.branch_id) + ":"
 
-    def _get_classid(self, obj=None):
-        if obj is not None:
-            self = obj
-        return str(self.prefixid) + ":" + str(self._classid)
+    @property
+    def default(self):
+        return self.parent.default
 
-    def _set_classid(self, obj=None, value=None):
-        if obj is not None:
-            self = obj
-        ddots = str(value).find(":")
-        if ddots != -1:
-            self.prefixid = int(value[:ddots])
-        else:
-            self.prefixid = int(value)
-
-    def _get_default(self, obj=None):
-        if obj is not None:
-            self = obj
-        return self._getter_attr_shared_with_parents("default")
-
-    def _set_default(self, obj=None, value=None):
-        if obj is not None:
-            self = obj
-        return self._setter_attr_shared_with_parents("default", value)
-
-    def _get_r2q(self, obj=None):
-        if obj is not None:
-            self = obj
-        return self._getter_attr_shared_with_parents("r2q")
-
-    def _set_r2q(self, obj=None, value=None):
-        if obj is not None:
-            self = obj
-        return self._setter_attr_shared_with_parents("r2q", value)
-
-    def __init__(self, default=None, r2q=None, *args, **kwargs):
-        self._init_properties("default", "r2q")
-        return super().__init__(*args, **kwargs)
+    @property
+    def r2q(self):
+        return self.parent.r2q
 
     def apply(self):
-        tc.qdisc_add(self.interface, self.prefixid, "htb",
+        tc.qdisc_add(self.interface, self.id, "htb",
                      default=self.default, r2q=self.r2q)
 
 
@@ -146,6 +112,20 @@ class EmptyHTBClass(_BasicQDisc):
         Quantum value
         """
         return self._quantum
+
+    @property
+    def branch_id(self):
+        """
+        Id of the current branch
+        """
+        return self.root.branch_id
+
+    @property
+    def classid(self):
+        """
+        Return the full_id, corresponding to "branch_id:id"
+        """
+        return str(self.branch_id) + ":" + str(self.id)
 
     def _get_rate(self, obj=None):
         """
@@ -283,11 +263,11 @@ class EmptyHTBClass(_BasicQDisc):
         for child in self.children:
             child.apply_qos(auto_quantum=auto_quantum)
 
-    def __init__(self, classid=None, rate=None, ceil=None,
+    def __init__(self, id=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
                  children=None, *args, **kwargs):
         self._init_properties("rate", "ceil", "burst", "cburst")
-        self.classid = classid if classid is not None else self.classid
+        self.id = id if id is not None else self.id
         if rate is not None:
             self.rate = rate
         if ceil is not None:
@@ -333,35 +313,17 @@ class RootHTBClass(HTBClass):
     """
     #: interface
     _interface = None
-    #: main algorithm to use for the qdisc
-    algorithm = None
-    #: qdisc prefix
-    qdisc_prefix_id = None
+    id = 1
+    #: branch id (and id of the root qdisc)
+    branch_id = None
     #: default mark to catch
     default = None
     #: r2q, to influe on the quantum (optional)
     r2q = None
 
-    def __init__(self, interface=None, algorithm="htb", qdisc_prefix_id="1:",
-                 default=None, r2q=None, *args, **kwargs):
-        self._interface = interface
-        self.algorithm = algorithm
-        self.default = default
-        self.r2q = r2q if r2q is not None else self.r2q
-        self.qdisc_prefix_id = (self.qdisc_prefix_id
-                                if self.qdisc_prefix_id is not None
-                                else qdisc_prefix_id)
-        self._qdisc = HTBQdisc(classid=self.qdisc_prefix_id, parent=self)
-        self.classid = str(self._qdisc.prefixid) + ":1"
-        self.parent = self._qdisc
-        super().__init__(*args, **kwargs)
-
     @property
     def root(self):
-        """
-        Return the qdisc class id
-        """
-        return self._qdisc
+        return self
 
     @property
     def interface(self):
@@ -369,6 +331,17 @@ class RootHTBClass(HTBClass):
         Return the interface name
         """
         return self._interface
+
+    def __init__(self, interface=None, branch_id=1,
+                 default=None, r2q=None, *args, **kwargs):
+        self._interface = interface
+        self.default = default
+        self.r2q = r2q if r2q is not None else self.r2q
+        self.branch_id = branch_id if branch_id is not None else self.branch_id
+        self._qdisc = HTBQdisc(parent=self)
+        # Needed with inherited functions
+        self.parent = self
+        super().__init__(*args, **kwargs)
 
     def apply_qos(self, auto_quantum=True):
         """
@@ -416,7 +389,7 @@ class HTBFilter(HTBClass):
         """
         Add filter to the class
         """
-        tc.filter_add(self.interface, parent=self.root.classid,
+        tc.filter_add(self.interface, parent=str(self.branch_id) + ":",
                       prio=self.prio, handle=self.mark, flowid=self.classid)
 
     def apply_qos(self, auto_quantum=True):
