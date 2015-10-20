@@ -11,7 +11,6 @@ def apply_qos():
         interface=lan_if["name"],
         rate=lan_if["speed"],
         burst=lan_if["speed"]/8,
-        qdisc_prefix_id="1:",
         default=1500
     )
     root_class.add_child(Interactive())

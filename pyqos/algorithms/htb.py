@@ -19,6 +19,10 @@ class HTBQdisc(_BasicQDisc):
         return str(self.parent.branch_id) + ":"
 
     @property
+    def classid(self):
+        return self.id
+
+    @property
     def default(self):
         return self.parent.default
 
@@ -339,7 +343,7 @@ class RootHTBClass(HTBClass):
         self.branch_id = branch_id if branch_id is not None else self.branch_id
         self._qdisc = HTBQdisc(parent=self)
         # Needed with inherited functions
-        self.parent = self
+        self.parent = self._qdisc
         super().__init__(*args, **kwargs)
 
     def apply_qos(self, auto_quantum=True):

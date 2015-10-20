@@ -11,7 +11,6 @@ def apply_qos():
         interface=public_if["name"],
         rate=public_if["speed"],
         burst=public_if["speed"]/8,
-        qdisc_prefix_id="1:",
         default=1500
     )
     root_class.add_child(Interactive())
