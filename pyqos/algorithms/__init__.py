@@ -59,15 +59,23 @@ class _BasicQDisc():
         setattr(self, "_" + attr, value)
 
     def _get_interface(self, obj=None):
+        if obj is not None:
+            self = obj
         return self._getter_attr_shared_with_parents("interface")
 
     def _set_interface(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         return self._setter_attr_shared_with_parents("interface", value)
 
     def _get_classid(self, obj=None):
+        if obj is not None:
+            self = obj
         return self._getter_attr_shared_with_parents("classid")
 
     def _set_classid(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         return self._setter_attr_shared_with_parents("classid", value)
 
     def _init_properties(self, *args):

@@ -37,15 +37,23 @@ class HTBQdisc(_BasicQDisc):
             self.prefixid = int(value)
 
     def _get_default(self, obj=None):
+        if obj is not None:
+            self = obj
         return self._getter_attr_shared_with_parents("default")
 
     def _set_default(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         return self._setter_attr_shared_with_parents("default", value)
 
     def _get_r2q(self, obj=None):
+        if obj is not None:
+            self = obj
         return self._getter_attr_shared_with_parents("r2q")
 
     def _set_r2q(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         return self._setter_attr_shared_with_parents("r2q", value)
 
     def __init__(self, default=None, r2q=None, *args, **kwargs):
