@@ -6,8 +6,55 @@ import inspect
 from pyqos import tools
 from pyqos.backend import tc
 from pyqos.exceptions import BadAttributeValueException, NoParentException
-from . import EmptyObject, _BasicQDisc
+from . import _BasicQDisc
 from .classless_qdiscs import FQCodel, PFIFO, SFQ
+
+
+class HTBQdisc(_BasicQDisc):
+    """
+    Implement the qdisc which will be directly set on the network interface
+    """
+    #: prefixid
+    prefixid = None
+    _classid = 0
+    #: default mark to catch
+    _default = None
+    #: r2q, to influe on the quantum (optional)
+    _r2q = None
+
+    def _get_classid(self, obj=None):
+        if obj is not None:
+            self = obj
+        return str(self.prefixid) + ":" + str(self._classid)
+
+    def _set_classid(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
+        ddots = str(value).find(":")
+        if ddots != -1:
+            self.prefixid = int(value[:ddots])
+        else:
+            self.prefixid = int(value)
+
+    def _get_default(self, obj=None):
+        return self._getter_attr_shared_with_parents("default")
+
+    def _set_default(self, obj=None, value=None):
+        return self._setter_attr_shared_with_parents("default", value)
+
+    def _get_r2q(self, obj=None):
+        return self._getter_attr_shared_with_parents("r2q")
+
+    def _set_r2q(self, obj=None, value=None):
+        return self._setter_attr_shared_with_parents("r2q", value)
+
+    def __init__(self, default=None, r2q=None, *args, **kwargs):
+        self._init_properties("default", "r2q")
+        return super().__init__(*args, **kwargs)
+
+    def apply(self):
+        tc.qdisc_add(self.interface, self.prefixid, "htb",
+                     default=self.default, r2q=self.r2q)
 
 
 class EmptyHTBClass(_BasicQDisc):
@@ -101,6 +148,8 @@ class EmptyHTBClass(_BasicQDisc):
         (percentage, rate_min, rate_max). The root class cannot have a relative
         rate.
         """
+        if obj is not None:
+            self = obj
         return (self._compute_speeds("rate") if type(self._rate) is tuple
                 else self._rate)
 
@@ -113,6 +162,8 @@ class EmptyHTBClass(_BasicQDisc):
         (percentage, rate_min, rate_max). The root class cannot have a relative
         rate.
         """
+        if obj is not None:
+            self = obj
         self._rate = value
 
     def _get_ceil(self, obj=None):
@@ -124,6 +175,8 @@ class EmptyHTBClass(_BasicQDisc):
         (percentage, ceil_min, ceil_max). The root class cannot have a relative
         ceil.
         """
+        if obj is not None:
+            self = obj
         return (self._compute_speeds("ceil") if type(self._ceil) is tuple
                 else self._ceil)
 
@@ -136,6 +189,8 @@ class EmptyHTBClass(_BasicQDisc):
         (percentage, ceil_min, ceil_max). The root class cannot have a relative
         ceil.
         """
+        if obj is not None:
+            self = obj
         self._ceil = value
 
     def _getter_burst_cburst(self, attr):
@@ -173,9 +228,13 @@ class EmptyHTBClass(_BasicQDisc):
         If _burst is an integer, its value will be returned directly.
         Otherwise, if it is a tuple, it will be considered as a callback.
         """
+        if obj is not None:
+            self = obj
         return self._getter_burst_cburst(self._burst)
 
     def _set_burst(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         self._burst = value
 
     def _get_cburst(self, obj=None):
@@ -185,9 +244,13 @@ class EmptyHTBClass(_BasicQDisc):
         If _burst is an integer, its value will be returned directly.
         Otherwise, if it is a tuple, it will be considered as a callback.
         """
+        if obj is not None:
+            self = obj
         return self._getter_burst_cburst(self._cburst)
 
     def _set_cburst(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         self._cburst = value
 
     def _add_class(self):
@@ -275,13 +338,14 @@ class RootHTBClass(HTBClass):
                  default=None, r2q=None, *args, **kwargs):
         self._interface = interface
         self.algorithm = algorithm
-        self.qdisc_prefix_id = qdisc_prefix_id
         self.default = default
         self.r2q = r2q if r2q is not None else self.r2q
-        qdisc_object = EmptyObject(classid=str(self.qdisc_prefix_id) + "0")
-        self.parent = qdisc_object
-        self._root = qdisc_object
-        self.classid = str(self.qdisc_prefix_id) + "1"
+        self.qdisc_prefix_id = (self.qdisc_prefix_id
+                                if self.qdisc_prefix_id is not None
+                                else qdisc_prefix_id)
+        self._qdisc = HTBQdisc(classid=self.qdisc_prefix_id, parent=self)
+        self.classid = str(self._qdisc.prefixid) + ":1"
+        self.parent = self._qdisc
         super().__init__(*args, **kwargs)
 
     @property
@@ -289,7 +353,7 @@ class RootHTBClass(HTBClass):
         """
         Return the qdisc class id
         """
-        return self._root
+        return self._qdisc
 
     @property
     def interface(self):
@@ -297,13 +361,6 @@ class RootHTBClass(HTBClass):
         Return the interface name
         """
         return self._interface
-
-    def _add_qdisc(self):
-        """
-        Add the root qdisc
-        """
-        tc.qdisc_add(self.interface, self.qdisc_prefix_id, self.algorithm,
-                     default=self.default, r2q=self.r2q)
 
     def apply_qos(self, auto_quantum=True):
         """
@@ -314,7 +371,7 @@ class RootHTBClass(HTBClass):
             raise BadAttributeValueException(
                 "Rate cannot be relative for a root class"
             )
-        self._add_qdisc()
+        self._qdisc.apply()
         return super().apply_qos(
             auto_quantum=(auto_quantum and self.r2q is None)
         )
