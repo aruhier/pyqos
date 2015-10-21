@@ -160,4 +160,8 @@ class PyQOS():
             self.config["DEBUG"] = True
 
         # Execute correct function, or print usage
-        args.func()
+        if hasattr(args, "func"):
+            args.func()
+        else:
+            self.arg_parser.print_help()
+            sys.exit(1)
