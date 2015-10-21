@@ -255,7 +255,7 @@ class EmptyHTBClass(_BasicQDisc):
         class_child.parent = self
         self.children.append(class_child)
 
-    def apply_qos(self, auto_quantum=True, dryrun=False):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -265,7 +265,7 @@ class EmptyHTBClass(_BasicQDisc):
         self.auto_quantum = auto_quantum
         self._add_class(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum, dryrun=dryrun)
+            child.apply(auto_quantum=auto_quantum, dryrun=dryrun)
 
     def __init__(self, id=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
@@ -346,7 +346,7 @@ class RootHTBClass(HTBClass):
         self.parent = self._qdisc
         super().__init__(*args, **kwargs)
 
-    def apply_qos(self, auto_quantum=True, dryrun=False):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         If the r2q has been defined, the quantum will not be defined
         automatiqually for children.
@@ -356,7 +356,7 @@ class RootHTBClass(HTBClass):
                 "Rate cannot be relative for a root class"
             )
         self._qdisc.apply(dryrun=dryrun)
-        return super().apply_qos(
+        return super().apply(
             auto_quantum=(auto_quantum and self.r2q is None), dryrun=dryrun
         )
 
@@ -395,7 +395,7 @@ class HTBFilter(HTBClass):
                       prio=self.prio, handle=self.mark, flowid=self.classid,
                       dryrun=dryrun)
 
-    def apply_qos(self, auto_quantum=True, dryrun=False):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -407,7 +407,7 @@ class HTBFilter(HTBClass):
         self.qdisc.apply(dryrun=dryrun)
         self._add_filter(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum, dryrun=dryrun)
+            child.apply(auto_quantum=auto_quantum, dryrun=dryrun)
 
 
 class HTBFilterFQCodel(HTBFilter):

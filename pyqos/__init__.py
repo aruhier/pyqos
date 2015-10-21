@@ -4,3 +4,5 @@
 import logging
 
 _logger = logging.Logger("pyqos")
+
+from pyqos.app import PyQOS

@@ -40,10 +40,10 @@ class PyQOS():
 
     def __init__(self, app_name="pyqos", root_path=None):
         self.app_name = app_name
+        self.config = Config(root_path, self.default_config)
         self._logger = None
         self.logger_name = self.app_name
-        self.config = Config(self.root_path, self.default_config)
-        if self.config.debug:
+        if self.config.get("DEBUG", False):
             _logger.level = logging.DEBUG
         else:
             _logger.level = logging.WARNING
@@ -98,6 +98,8 @@ class PyQOS():
         self.reset_qos()
         # Setting new rules
         print("Setting new rules")
+        for r in self.run_list:
+            r.apply()
 
     def reset_qos(self):
         """
