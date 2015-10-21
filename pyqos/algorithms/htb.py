@@ -248,12 +248,13 @@ class EmptyHTBClass(_BasicQDisc):
     def _add_class(self):
         pass
 
-    def add_child(self, class_child):
+    def add_child(self, *args):
         """
         Add a class as children
         """
-        class_child.parent = self
-        self.children.append(class_child)
+        for class_child in args:
+            class_child.parent = self
+            self.children.append(class_child)
 
     def apply(self, auto_quantum=True, dryrun=False):
         """

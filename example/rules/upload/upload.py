@@ -22,7 +22,7 @@ class Interactive(HTBFilterPFIFO):
     cburst = (cburst_formula,)
 
 
-class TCPACK(HTBFilterSFQ):
+class TCP_ack(HTBFilterSFQ):
     """
     Class for TCP ACK.
 

@@ -12,10 +12,6 @@ root_class = RootHTBClass(
     burst=lan_if["speed"]/8,
     default=1500
 )
-root_class.add_child(Interactive())
-root_class.add_child(TCP_ack())
-root_class.add_child(SSH())
-root_class.add_child(HTTP())
-root_class.add_child(Default())
+root_class.add_child(Interactive(), TCP_ack(), SSH(), HTTP(), Default())
 
 app.run_list.append(root_class)
