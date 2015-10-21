@@ -30,6 +30,7 @@ def launch_command(command, stderr=None, dryrun=False):
     If the script is launched in debug mode, just prints the command.
     Otherwise, starts it with subprocess.call()
     """
+    # TODO: doesn't print correctly the debug
     _logger.debug(" ".join(command))
     if dryrun:
         return

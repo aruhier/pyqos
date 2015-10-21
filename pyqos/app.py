@@ -65,10 +65,7 @@ class PyQOS():
             else:
                 self._logger.level = logging.WARNING
             return self._logger
-        self._logger = logging.Logger(
-            self.logger_name,
-            format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) ",
-        )
+        self._logger = logging.Logger(self.logger_name)
         return self._logger
 
     def get_ifnames(self, interfaces_lst=None):
@@ -158,6 +155,8 @@ class PyQOS():
         self.config["DRYRUN"] = args.dryrun
         if args.debug or args.dryrun:
             self.config["DEBUG"] = True
+
+        _logger.level = self.logger.level
 
         # Execute correct function, or print usage
         if hasattr(args, "func"):
