@@ -6,7 +6,7 @@ to read. This tool tries to give a better way to interact with TC.
 
 Dependencies
 ------------
-  * python 2.7 or 3.4 (it certainly works with prior versions, just not tested)
+  * python 3.4 (it certainly works with prior versions, just not tested)
 
 
 Configuration
