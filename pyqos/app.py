@@ -99,7 +99,7 @@ class PyQOS():
         # Setting new rules
         print("Setting new rules")
         for r in self.run_list:
-            r.apply()
+            r.apply(dryrun=self.config.get("DRYRUN", False))
 
     def reset_qos(self):
         """
