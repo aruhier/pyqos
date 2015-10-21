@@ -22,13 +22,21 @@ class PyQOS():
         from pyqos import PyQOS
         app = PyQOS(application_name)
     """
+    #: set the main logger in debug mode or not
     debug = ConfigAttribute("DEBUG")
+    #: dryrun
+    dryrun = ConfigAttribute("DRYRUN")
+    #: name of the main logger
     logger_name = ConfigAttribute('LOGGER_NAME')
+    #: configuration default values
     default_config = {
         "DEBUG": False,
         "LOGGER_NAME": None,
         "INTERFACES": dict(),
     }
+
+    #: list of qos object to apply at run
+    run_list = list()
 
     def __init__(self, app_name="pyqos", root_path=None):
         self.app_name = app_name
@@ -96,10 +104,9 @@ class PyQOS():
         Reset QOS for all configured interfaces
         """
         self.run_as_root()
-        _logger.info("Removing tc rules")
+        print("Removing tc rules")
         ifnames = self.get_ifnames()
         tc.qdisc_del(ifnames, stderr=subprocess.DEVNULL)
-        return
 
     def show_qos(self):
         ifnames = self.get_ifnames()
@@ -130,6 +137,8 @@ class PyQOS():
         # Debug option
         parser.add_argument('-d', '--debug', help="Set the debug level",
                             dest="debug", action="store_true")
+        parser.add_argument('-D', '--dryrun', help="Dry run",
+                            dest="dryrun", action="store_true")
 
         self.arg_parser = parser
 
@@ -144,7 +153,8 @@ class PyQOS():
         # Parse argument
         args = self.arg_parser.parse_args()
 
-        if args.debug:
+        self.config["DRYRUN"] = args.dryrun
+        if args.debug or args.dryrun:
             self.config["DEBUG"] = True
 
         # Execute correct function, or print usage
