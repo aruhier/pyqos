@@ -271,7 +271,7 @@ class EmptyHTBClass(_BasicQDisc):
                  burst=None, cburst=None, quantum=None, prio=None,
                  children=None, *args, **kwargs):
         self._init_properties("rate", "ceil", "burst", "cburst")
-        self.id = id if id is not None else self.id
+        self.id = id or self.id
         if rate is not None:
             self.rate = rate
         if ceil is not None:
@@ -281,8 +281,8 @@ class EmptyHTBClass(_BasicQDisc):
         if cburst is not None:
             self.cburst = cburst
         self._quantum = quantum
-        self.prio = prio if prio is not None else self.prio
-        self.children = children if children is not None else []
+        self.prio = prio or self.prio
+        self.children = children or []
 
 
 class HTBClass(EmptyHTBClass):
@@ -339,8 +339,8 @@ class RootHTBClass(HTBClass):
                  default=None, r2q=None, *args, **kwargs):
         self._interface = interface
         self.default = default
-        self.r2q = r2q if r2q is not None else self.r2q
-        self.branch_id = branch_id if branch_id is not None else self.branch_id
+        self.r2q = r2q or self.r2q
+        self.branch_id = branch_id or self.branch_id
         self._qdisc = HTBQdisc(parent=self)
         # Needed with inherited functions
         self.parent = self._qdisc
@@ -375,10 +375,9 @@ class HTBFilter(HTBClass):
 
     def __init__(self, mark=None, qdisc=None, qdisc_kwargs=None, *args,
                  **kwargs):
-        self.mark = mark if mark is not None else self.mark
-        qdisc = qdisc if qdisc is not None else self.qdisc
-        self.qdisc_kwargs = (qdisc_kwargs if qdisc_kwargs is not None
-                             else self.qdisc_kwargs)
+        self.mark = mark or self.mark
+        qdisc = qdisc or self.qdisc
+        self.qdisc_kwargs = qdisc_kwargs or self.qdisc_kwargs
         if inspect.isclass(qdisc):
             self.qdisc = qdisc(parent=self, **self.qdisc_kwargs)
         else:
