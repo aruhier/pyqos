@@ -7,7 +7,7 @@ from pyqos.decorators import multiple_interfaces
 
 @multiple_interfaces
 def qdisc(interface, action, algorithm=None, handle=None, parent=None,
-          stderr=None, *args, **kwargs):
+          stderr=None, dryrun=False, *args, **kwargs):
     """
     Add/change/replace/replace qdisc
 
@@ -34,12 +34,11 @@ def qdisc(interface, action, algorithm=None, handle=None, parent=None,
         if j is not None:
             command += [str(i), str(j)]
 
-    launch_command(command, stderr)
+    launch_command(command, stderr, dryrun)
 
 
 @multiple_interfaces
-def qdisc_add(interface, handle, algorithm, parent=None, *args,
-              **kwargs):
+def qdisc_add(interface, handle, algorithm, parent=None, *args, **kwargs):
     """
     Add qdisc
 
@@ -73,7 +72,7 @@ def qdisc_del(interface, algorithm=None, handle=None, parent=None, *args,
 
 
 @multiple_interfaces
-def qdisc_show(interface=None, show_format=None):
+def qdisc_show(interface=None, show_format=None, dryrun=False):
     """
     Show qdiscs
 
@@ -94,12 +93,12 @@ def qdisc_show(interface=None, show_format=None):
     command += ["qdisc", "show"]
     if interface is not None:
         command += ["dev", interface]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
 def qos_class(interface, action, parent, classid=None, algorithm="htb",
-              **kwargs):
+              dryrun=False, *args, **kwargs):
     """
     Add/change/replace/replace class
 
@@ -134,7 +133,7 @@ def qos_class(interface, action, parent, classid=None, algorithm="htb",
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
@@ -174,7 +173,7 @@ def qos_class_del(interface, parent, classid=None, algorithm="htb", **kwargs):
 
 
 @multiple_interfaces
-def qos_class_show(interface, show_format=None):
+def qos_class_show(interface, show_format=None, dryrun=False):
     """
     Show classes
 
@@ -193,12 +192,12 @@ def qos_class_show(interface, show_format=None):
     if show_format is not None:
         command.append(correct_format)
     command += ["class", "show", "dev", interface]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
 def filter(interface, action, prio, handle, flowid, parent=None,
-           protocol=None, **kwargs):
+           protocol=None, dryrun=False, *args, **kwargs):
     """
     Add/change/replace/delete filter
 
@@ -221,19 +220,19 @@ def filter(interface, action, prio, handle, flowid, parent=None,
         command += ["parent", parent]
     if protocol is None:
         filter(interface, action, prio + 1, handle, flowid, parent,
-               protocol="ipv6", **kwargs)
+               protocol="ipv6", dryrun=dryrun, *args, **kwargs)
         protocol = "ip"
     command += ["protocol", protocol, "prio", str(prio), "handle", str(handle),
                 "fw", "flowid", flowid]
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
 def filter_add(interface, parent, prio, handle, flowid, protocol=None,
-               **kwargs):
+               *args, **kwargs):
     """
     Add filter
 
@@ -247,12 +246,13 @@ def filter_add(interface, parent, prio, handle, flowid, protocol=None,
     :param flowid: target class
     :param protocol: protocol to filter (default: ip)
     """
-    filter(interface, "add", prio, handle, flowid, parent, protocol, **kwargs)
+    filter(interface, "add", prio, handle, flowid, parent, protocol,
+           *args, **kwargs)
 
 
 @multiple_interfaces
 def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
-               **kwargs):
+               *args, **kwargs):
     """
     Delete filter
 
@@ -267,14 +267,14 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
     :param protocol: protocol to filter (default: ip)
     """
     filter(interface, "add", prio, handle, flowid, parent, protocol,
-           **kwargs)
+           *args, **kwargs)
 
 
 @multiple_interfaces
-def filter_show(interface):
+def filter_show(interface, dryrun=False):
     """
     Show filters
 
     :param interface: target interface
     """
-    launch_command(["tc", "filter", "show", "dev", interface])
+    launch_command(["tc", "filter", "show", "dev", interface], dryrun=dryrun)

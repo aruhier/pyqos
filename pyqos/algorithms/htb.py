@@ -30,9 +30,9 @@ class HTBQdisc(_BasicQDisc):
     def r2q(self):
         return self.parent.r2q
 
-    def apply(self):
+    def apply(self, dryrun=False):
         tc.qdisc_add(self.interface, self.id, "htb",
-                     default=self.default, r2q=self.r2q)
+                     default=self.default, r2q=self.r2q, dryrun=dryrun)
 
 
 class EmptyHTBClass(_BasicQDisc):
@@ -255,7 +255,7 @@ class EmptyHTBClass(_BasicQDisc):
         class_child.parent = self
         self.children.append(class_child)
 
-    def apply_qos(self, auto_quantum=True):
+    def apply_qos(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -263,9 +263,9 @@ class EmptyHTBClass(_BasicQDisc):
         too.
         """
         self.auto_quantum = auto_quantum
-        self._add_class()
+        self._add_class(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum)
+            child.apply_qos(auto_quantum=auto_quantum, dryrun=dryrun)
 
     def __init__(self, id=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
@@ -300,14 +300,14 @@ class HTBClass(EmptyHTBClass):
         except AttributeError:
             return self._quantum
 
-    def _add_class(self):
+    def _add_class(self, dryrun=False):
         """
         Add class to the interface
         """
         tc.qos_class_add(self.interface, parent=self.parent.classid,
                          classid=self.classid, rate=self.rate,
                          ceil=self.ceil, burst=self.burst, cburst=self.cburst,
-                         prio=self.prio, quantum=self.quantum)
+                         prio=self.prio, quantum=self.quantum, dryrun=dryrun)
 
 
 class RootHTBClass(HTBClass):
@@ -346,7 +346,7 @@ class RootHTBClass(HTBClass):
         self.parent = self._qdisc
         super().__init__(*args, **kwargs)
 
-    def apply_qos(self, auto_quantum=True):
+    def apply_qos(self, auto_quantum=True, dryrun=False):
         """
         If the r2q has been defined, the quantum will not be defined
         automatiqually for children.
@@ -355,9 +355,9 @@ class RootHTBClass(HTBClass):
             raise BadAttributeValueException(
                 "Rate cannot be relative for a root class"
             )
-        self._qdisc.apply()
+        self._qdisc.apply(dryrun=dryrun)
         return super().apply_qos(
-            auto_quantum=(auto_quantum and self.r2q is None)
+            auto_quantum=(auto_quantum and self.r2q is None), dryrun=dryrun
         )
 
 
@@ -387,14 +387,15 @@ class HTBFilter(HTBClass):
                 setattr(qdisc, attr, value)
         super().__init__(*args, **kwargs)
 
-    def _add_filter(self):
+    def _add_filter(self, dryrun=False):
         """
         Add filter to the class
         """
         tc.filter_add(self.interface, parent=str(self.branch_id) + ":",
-                      prio=self.prio, handle=self.mark, flowid=self.classid)
+                      prio=self.prio, handle=self.mark, flowid=self.classid,
+                      dryrun=dryrun)
 
-    def apply_qos(self, auto_quantum=True):
+    def apply_qos(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -402,11 +403,11 @@ class HTBFilter(HTBClass):
         too.
         """
         self.auto_quantum = auto_quantum
-        self._add_class()
-        self.qdisc.apply()
-        self._add_filter()
+        self._add_class(dryrun=dryrun)
+        self.qdisc.apply(dryrun=dryrun)
+        self._add_filter(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum)
+            child.apply_qos(auto_quantum=auto_quantum, dryrun=dryrun)
 
 
 class HTBFilterFQCodel(HTBFilter):

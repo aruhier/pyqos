@@ -25,12 +25,14 @@ def get_mtu(ifname):
     return mtu
 
 
-def launch_command(command, stderr=None):
+def launch_command(command, stderr=None, dryrun=False):
     """
     If the script is launched in debug mode, just prints the command.
     Otherwise, starts it with subprocess.call()
     """
     _logger.debug(" ".join(command))
+    if dryrun:
+        return
     r = subprocess.call(command, stderr=stderr)
     if r != 0:
         if stderr == subprocess.DEVNULL:
