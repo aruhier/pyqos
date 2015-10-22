@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# Author: Anthony Ruhier
 
 from rules import app
 from pyqos.algorithms.htb import RootHTBClass

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Author: Anthony Ruhier
 
 from fcntl import ioctl
