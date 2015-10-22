@@ -3,6 +3,7 @@
 
 import errno
 import importlib
+import logging
 import os
 import types
 
@@ -26,6 +27,11 @@ class Config(dict):
     def __init__(self, root_path, defaults=None):
         dict.__init__(self, defaults or {})
         self.root_path = root_path or "./"
+        self.refresh_global_logger_lvl()
+
+    def refresh_global_logger_lvl(self):
+        if self["DEBUG"] or self["DRYRUN"]:
+            logging.getLogger("pyqos").setLevel(logging.DEBUG)
 
     def from_pyfile(self, filename, silent=False):
         """
@@ -98,4 +104,6 @@ class ConfigAttribute(object):
         return rv
 
     def __set__(self, obj, value):
+        # When setting the log level, change the global logger level
         obj.config[self.__name__] = value
+        obj.config.refresh_global_logger_lvl()

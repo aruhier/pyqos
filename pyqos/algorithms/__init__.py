@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # Author: Anthony Ruhier
 
-from pyqos import _logger
+import logging
+
+_logger = logging.getLogger("pyqos")
 
 
 class EmptyObject():

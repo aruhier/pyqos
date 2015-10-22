@@ -7,9 +7,11 @@ import os
 import subprocess
 import sys
 
-from pyqos import _logger
 from pyqos.backend import tc
 from pyqos.config import Config, ConfigAttribute
+
+global_logger = logging.getLogger("pyqos")
+_logger = logging.getLogger(__name__)
 
 
 class PyQOS():
@@ -31,6 +33,7 @@ class PyQOS():
     #: configuration default values
     default_config = {
         "DEBUG": False,
+        "DRYRUN": False,
         "LOGGER_NAME": None,
         "INTERFACES": dict(),
     }
@@ -43,10 +46,6 @@ class PyQOS():
         self.config = Config(root_path, self.default_config)
         self._logger = None
         self.logger_name = self.app_name
-        if self.config.get("DEBUG", False):
-            _logger.level = logging.DEBUG
-        else:
-            _logger.level = logging.WARNING
 
     @property
     def logger(self):
@@ -59,13 +58,12 @@ class PyQOS():
             app.logger.warning('A warning occurred (%d apples)', 42)
             app.logger.error('An error occurred')
         """
-        if self._logger and self._logger.name == self.logger_name:
-            if self.config.debug:
-                self._logger.level = logging.DEBUG
-            else:
-                self._logger.level = logging.WARNING
-            return self._logger
-        self._logger = logging.Logger(self.logger_name)
+        if not (self._logger and self._logger.name == self.logger_name):
+            self._logger = logging.Logger(self.logger_name)
+        if self.config["DEBUG"]:
+            self._logger.setLevel(logging.DEBUG)
+        else:
+            self._logger.setLevel(logging.WARNING)
         return self._logger
 
     def get_ifnames(self, interfaces_lst=None):
@@ -152,11 +150,9 @@ class PyQOS():
         # Parse argument
         args = self.arg_parser.parse_args()
 
-        self.config["DRYRUN"] = args.dryrun
+        self.dryrun = args.dryrun
         if args.debug or args.dryrun:
-            self.config["DEBUG"] = True
-
-        _logger.level = self.logger.level
+            self.debug = True
 
         # Execute correct function, or print usage
         if hasattr(args, "func"):
