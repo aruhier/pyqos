@@ -7,4 +7,4 @@ logging.basicConfig(
     format="[%(levelname)s] %(message)s (%(filename)s:%(lineno)d) "
 )
 
-from pyqos.app import PyQOS
+from pyqos.app import PyQoS

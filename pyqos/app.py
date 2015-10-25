@@ -14,15 +14,15 @@ global_logger = logging.getLogger("pyqos")
 _logger = logging.getLogger(__name__)
 
 
-class PyQOS():
+class PyQoS():
     """
-    Application to simplify the initialization of the QOS rules. Inspired from
+    Application to simplify the initialization of the QoS rules. Inspired from
     the Flask project.
 
-    Usually you create a :class:`PyQOS` instance in your main module or
+    Usually you create a :class:`PyQoS` instance in your main module or
     in the :file:`__init__.py` file of your package like this::
-        from pyqos import PyQOS
-        app = PyQOS(application_name)
+        from pyqos import PyQoS
+        app = PyQoS(application_name)
     """
     #: set the main logger in debug mode or not
     debug = ConfigAttribute("DEBUG")
@@ -98,7 +98,7 @@ class PyQOS():
 
     def reset_qos(self):
         """
-        Reset QOS for all configured interfaces
+        Reset QoS for all configured interfaces
         """
         self.run_as_root()
         print("Removing tc rules")
