@@ -1,37 +1,47 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Author: Anthony Ruhier
 
-import tools
-from exceptions import BadAttributeValueException, NoParentException
+import inspect
+
+from pyqos import tools
+from pyqos.backend import tc
+from pyqos.exceptions import BadAttributeValueException, NoParentException
+from . import _BasicQDisc
+from .classless_qdiscs import FQCodel, PFIFO, SFQ
 
 
-class EmptyObject():
+class HTBQdisc(_BasicQDisc):
     """
-    Object that does nothing, but "nothing" can be useful
-
-    Base object to simulate, for example, something already handled by another
-    tool in the system. Just set as attribute everything it receives in
-    parameter during the construction.
+    Implement the qdisc which will be directly set on the network interface
     """
-    def __init__(self, **kwargs):
-        """
-        Set as attribute everything received
-        """
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
+    @property
+    def id(self):
+        return str(self.parent.branch_id) + ":"
+
+    @property
+    def classid(self):
+        return self.id
+
+    @property
+    def default(self):
+        return self.parent.default
+
+    @property
+    def r2q(self):
+        return self.parent.r2q
+
+    def apply(self, dryrun=False):
+        tc.qdisc_add(self.interface, self.id, "htb",
+                     default=self.default, r2q=self.r2q, dryrun=dryrun)
 
 
-class EmptyHTBClass():
+class EmptyHTBClass(_BasicQDisc):
     """
     HTB that does nothing but can be used as parent for example
 
     Can be useful to simulate, for example, a class already handled by another
     tool in the system.
     """
-    #: interface
-    _interface = None
-    #: class id
-    classid = None
     #: store the rate as it was defined during the init
     _rate = None
     #: store the ceil as it was defined during the init
@@ -107,27 +117,35 @@ class EmptyHTBClass():
         """
         return self._quantum
 
+    @property
+    def branch_id(self):
+        """
+        Id of the current branch
+        """
+        return self.root.branch_id
+
+    @property
+    def classid(self):
+        """
+        Return the full_id, corresponding to "branch_id:id"
+        """
+        return str(self.branch_id) + ":" + str(self.id)
+
     def _get_rate(self, obj=None):
         """
         Getter for rate
-
-        If _rate is an integer, will be used directly. Can also be a
-        tupple to set a relative rate, equals to a % of the parent class rate:
-        (percentage, rate_min, rate_max). The root class cannot have a relative
-        rate.
         """
+        if obj is not None:
+            self = obj
         return (self._compute_speeds("rate") if type(self._rate) is tuple
                 else self._rate)
 
     def _set_rate(self, obj=None, value=None):
         """
         Setter for rate
-
-        If rate is an integer, will be used directly. Can also be a
-        tupple to set a relative rate, equals to a % of the parent class rate:
-        (percentage, rate_min, rate_max). The root class cannot have a relative
-        rate.
         """
+        if obj is not None:
+            self = obj
         self._rate = value
 
     def _get_ceil(self, obj=None):
@@ -139,6 +157,8 @@ class EmptyHTBClass():
         (percentage, ceil_min, ceil_max). The root class cannot have a relative
         ceil.
         """
+        if obj is not None:
+            self = obj
         return (self._compute_speeds("ceil") if type(self._ceil) is tuple
                 else self._ceil)
 
@@ -146,11 +166,9 @@ class EmptyHTBClass():
         """
         Setter for ceil
 
-        If ceil is an integer, will be used directly. Can also be a
-        tupple to set a relative ceil, equals to a % of the parent class ceil:
-        (percentage, ceil_min, ceil_max). The root class cannot have a relative
-        ceil.
         """
+        if obj is not None:
+            self = obj
         self._ceil = value
 
     def _getter_burst_cburst(self, attr):
@@ -188,9 +206,13 @@ class EmptyHTBClass():
         If _burst is an integer, its value will be returned directly.
         Otherwise, if it is a tuple, it will be considered as a callback.
         """
+        if obj is not None:
+            self = obj
         return self._getter_burst_cburst(self._burst)
 
     def _set_burst(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         self._burst = value
 
     def _get_cburst(self, obj=None):
@@ -200,41 +222,48 @@ class EmptyHTBClass():
         If _burst is an integer, its value will be returned directly.
         Otherwise, if it is a tuple, it will be considered as a callback.
         """
+        if obj is not None:
+            self = obj
         return self._getter_burst_cburst(self._cburst)
 
     def _set_cburst(self, obj=None, value=None):
+        if obj is not None:
+            self = obj
         self._cburst = value
 
-    def _init_properties(self):
-        def set_property(attribute):
-            setattr(
-                self.__class__, attribute,
-                property(
-                    getattr(self, "_get_" + attribute),
-                    getattr(self, "_set_" + attribute)
-                )
-            )
+    #: If rate is an integer, will be used directly. Can also
+    #: be a tupple to set a relative rate, equals to a % of the parent class
+    #: rate: ``(percentage, rate_min, rate_max)``. The root class cannot have a
+    #: relative rate.
+    rate = property(_get_rate, _set_rate)
 
-        for attribute in ("rate", "ceil", "burst", "cburst"):
-            try:
-                if not isinstance(getattr(type(self), attribute), property):
-                    tmp = getattr(self, attribute)
-                    set_property(attribute)
-                    setattr(self, attribute, tmp)
-            except AttributeError:
-                set_property(attribute)
+    #: If ceil is an integer, will be used directly. Can also
+    #: be a tupple to set a relative ceil, equals to a % of the parent class
+    #: ceil: ``(percentage, ceil_min, ceil_max)``. If the parent has no ceil
+    #: defined, a relative ceil will use the parent's rate instead.  The root
+    #: class cannot have a relative ceil.
+    ceil = property(_get_ceil, _set_ceil)
+
+    #: If burst is an integer, its value will be returned directly.
+    #  Otherwise, if it is a tuple, it will be considered as a callback.
+    burst = property(_get_burst, _set_burst)
+
+    #: If cburst is an integer, its value will be returned directly.
+    #: Otherwise, if it is a tuple, it will be considered as a callback.
+    cburst = property(_get_cburst, _set_cburst)
 
     def _add_class(self):
         pass
 
-    def add_child(self, class_child):
+    def add_child(self, *args):
         """
         Add a class as children
         """
-        class_child.parent = self
-        self.children.append(class_child)
+        for class_child in args:
+            class_child.parent = self
+            self.children.append(class_child)
 
-    def apply_qos(self, auto_quantum=True):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -242,15 +271,15 @@ class EmptyHTBClass():
         too.
         """
         self.auto_quantum = auto_quantum
-        self._add_class()
+        self._add_class(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum)
+            child.apply(auto_quantum=auto_quantum, dryrun=dryrun)
 
-    def __init__(self, classid=None, rate=None, ceil=None,
+    def __init__(self, id=None, rate=None, ceil=None,
                  burst=None, cburst=None, quantum=None, prio=None,
                  children=None, *args, **kwargs):
-        self._init_properties()
-        self.classid = classid if classid is not None else self.classid
+        self._init_properties("rate", "ceil", "burst", "cburst")
+        self.id = id or self.id
         if rate is not None:
             self.rate = rate
         if ceil is not None:
@@ -260,15 +289,14 @@ class EmptyHTBClass():
         if cburst is not None:
             self.cburst = cburst
         self._quantum = quantum
-        self.prio = prio if prio is not None else self.prio
-        self.children = children if children is not None else []
+        self.prio = prio or self.prio
+        self.children = children or []
 
 
-class BasicHTBClass(EmptyHTBClass):
+class HTBClass(EmptyHTBClass):
     """
-    Basic class
+    Basic HTB class
     """
-
     @property
     def quantum(self):
         """
@@ -280,48 +308,33 @@ class BasicHTBClass(EmptyHTBClass):
         except AttributeError:
             return self._quantum
 
-    def _add_class(self):
+    def _add_class(self, dryrun=False):
         """
         Add class to the interface
         """
-        tools.class_add(self.interface, parent=self.parent.classid,
-                        classid=self.classid, rate=self.rate,
-                        ceil=self.ceil, burst=self.burst, cburst=self.cburst,
-                        prio=self.prio, quantum=self.quantum)
+        tc.qos_class_add(self.interface, parent=self.parent.classid,
+                         classid=self.classid, rate=self.rate,
+                         ceil=self.ceil, burst=self.burst, cburst=self.cburst,
+                         prio=self.prio, quantum=self.quantum, dryrun=dryrun)
 
 
-class RootHTBClass(BasicHTBClass):
+class RootHTBClass(HTBClass):
     """
     Root tc class, directly attached to the interface
     """
-    #: main algorithm to use for the qdisc
-    algorithm = None
-    #: qdisc prefix
-    qdisc_prefix_id = None
+    #: interface
+    _interface = None
+    id = 1
+    #: branch id (and id of the root qdisc)
+    branch_id = None
     #: default mark to catch
     default = None
     #: r2q, to influe on the quantum (optional)
     r2q = None
 
-    def __init__(self, interface=None, algorithm="htb", qdisc_prefix_id="1:",
-                 default=None, r2q=None, *args, **kwargs):
-        self._interface = interface
-        self.algorithm = algorithm
-        self.qdisc_prefix_id = qdisc_prefix_id
-        self.default = default
-        self.r2q = r2q if r2q is not None else self.r2q
-        qdisc_object = EmptyObject(classid=str(self.qdisc_prefix_id) + "0")
-        self.parent = qdisc_object
-        self._root = qdisc_object
-        self.classid = str(self.qdisc_prefix_id) + "1"
-        super().__init__(*args, **kwargs)
-
     @property
     def root(self):
-        """
-        Return the qdisc class id
-        """
-        return self._root
+        return self
 
     @property
     def interface(self):
@@ -330,14 +343,18 @@ class RootHTBClass(BasicHTBClass):
         """
         return self._interface
 
-    def _add_qdisc(self):
-        """
-        Add the root qdisc
-        """
-        tools.qdisc_add(self.interface, self.qdisc_prefix_id, self.algorithm,
-                        default=self.default, r2q=self.r2q)
+    def __init__(self, interface=None, branch_id=1,
+                 default=None, r2q=None, *args, **kwargs):
+        self._interface = interface
+        self.default = default
+        self.r2q = r2q or self.r2q
+        self.branch_id = branch_id or self.branch_id
+        self._qdisc = HTBQdisc(parent=self)
+        # Needed with inherited functions
+        self.parent = self._qdisc
+        super().__init__(*args, **kwargs)
 
-    def apply_qos(self, auto_quantum=True):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         If the r2q has been defined, the quantum will not be defined
         automatiqually for children.
@@ -346,34 +363,47 @@ class RootHTBClass(BasicHTBClass):
             raise BadAttributeValueException(
                 "Rate cannot be relative for a root class"
             )
-        self._add_qdisc()
-        return super().apply_qos(
-            auto_quantum=(auto_quantum and self.r2q is None)
+        self._qdisc.apply(dryrun=dryrun)
+        return super().apply(
+            auto_quantum=(auto_quantum and self.r2q is None), dryrun=dryrun
         )
 
 
-class _BasicFilterHTBClass(BasicHTBClass):
+class HTBFilter(HTBClass):
     """
     Basic class with filtering
     """
     #: mark catch by the class
     mark = None
+    #: qdisc associated. Can be a class of an already initialized qdisc.
+    qdisc = None
+    #: dict used during the construction **ONLY**, used as a kwargs to set the
+    #: qdisc attributes.
+    qdisc_kwargs = dict()
 
-    def __init__(self, mark=None, *args, **kwargs):
-        self.mark = mark if mark is not None else self.mark
+    def __init__(self, mark=None, qdisc=None, qdisc_kwargs=None, *args,
+                 **kwargs):
+        self.mark = mark or self.mark
+        qdisc = qdisc or self.qdisc
+        self.qdisc_kwargs = qdisc_kwargs or self.qdisc_kwargs
+        if inspect.isclass(qdisc):
+            self.qdisc = qdisc(parent=self, **self.qdisc_kwargs)
+        else:
+            self.qdisc = qdisc
+            self.qdisc.parent = self
+            for attr, value in self.qdisc_kwargs.items():
+                setattr(qdisc, attr, value)
         super().__init__(*args, **kwargs)
 
-    def _add_filter(self):
+    def _add_filter(self, dryrun=False):
         """
         Add filter to the class
         """
-        tools.filter_add(self.interface, parent=self.root.classid,
-                         prio=self.prio, handle=self.mark, flowid=self.classid)
+        tc.filter_add(self.interface, parent=str(self.branch_id) + ":",
+                      prio=self.prio, handle=self.mark, flowid=self.classid,
+                      dryrun=dryrun)
 
-    def _add_qdisc(self):
-        raise NotImplemented
-
-    def apply_qos(self, auto_quantum=True):
+    def apply(self, auto_quantum=True, dryrun=False):
         """
         Apply qos with current attributes
 
@@ -381,71 +411,31 @@ class _BasicFilterHTBClass(BasicHTBClass):
         too.
         """
         self.auto_quantum = auto_quantum
-        self._add_class()
-        self._add_qdisc()
-        self._add_filter()
+        self._add_class(dryrun=dryrun)
+        self.qdisc.apply(dryrun=dryrun)
+        self._add_filter(dryrun=dryrun)
         for child in self.children:
-            child.apply_qos(auto_quantum=auto_quantum)
+            child.apply(auto_quantum=auto_quantum, dryrun=dryrun)
 
 
-class FQCodelClass(_BasicFilterHTBClass):
+class HTBFilterFQCodel(HTBFilter):
     """
-    HTB class with a fq_codel qdisc builtin
+    Lazy wrapper to get a HTB class with a filter and a FQCodel qdisc already
+    set
     """
-    #: when this limit is reached, incoming packets are dropped
-    limit = None
-    #: is the number of flows into which the incoming packets are classified
-    flows = None
-    #: is the acceptable minimum standing/persistent queue delay
-    target = None
-    #: is used to ensure that the measured minimum delay does not become too
-    #  stale
-    interval = None
-    #: is the number of bytes used as 'deficit' in the fair queuing algorithm
-    codel_quantum = None
-
-    def __init__(self, limit=None, flows=None, target=None, interval=None,
-                 codel_quantum=None, *args, **kwargs):
-        self.limit = limit
-        self.flows = flows
-        self.target = target
-        self.interval = interval
-        self.codel_quantum = codel_quantum
-        super().__init__(*args, **kwargs)
-
-    def _add_qdisc(self):
-        if self.codel_quantum is None:
-            self.codel_quantum = tools.get_mtu(self.interface)
-        tools.qdisc_add(self.interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="fq_codel", limit=self.limit,
-                        flows=self.flows, target=self.target,
-                        interval=self.interval,
-                        quantum=self.codel_quantum)
+    qdisc = FQCodel
 
 
-class SFQClass(_BasicFilterHTBClass):
+class HTBFilterPFIFO(HTBFilter):
     """
-    HTB class with a SFQ qdisc builtin
+    Lazy wrapper to get a HTB class with a filter and a PFIFO qdisc already
+    set
     """
-    #: perturb parameter for sfq
-    perturb = None
-
-    def __init__(self, perturb=10, *args, **kwargs):
-        self.perturb = perturb
-        super().__init__(*args, **kwargs)
-
-    def _add_qdisc(self):
-        tools.qdisc_add(self.interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="sfq", perturb=self.perturb)
+    qdisc = PFIFO
 
 
-class PFIFOClass(_BasicFilterHTBClass):
+class HTBFilterSFQ(HTBFilter):
     """
-    Basic filtering class with a PFIFO qdisc built in
+    Lazy wrapper to get a HTB class with a filter and a SFQ qdisc already set
     """
-    def _add_qdisc(self):
-        tools.qdisc_add(self.interface, parent=self.classid,
-                        handle=tools.get_child_qdiscid(self.classid),
-                        algorithm="pfifo")
+    qdisc = SFQ

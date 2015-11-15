@@ -1,47 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Author: Anthony Ruhier
 
-from fcntl import ioctl
-import socket
-import subprocess
-import struct
-import logging
-from decorators import multiple_interfaces
-
-def get_mtu(ifname):
-    """
-    Use socket ioctl call to get MTU size of an interface
-    """
-    SIOCGIFMTU = 0x8921
-    s = socket.socket(type=socket.SOCK_DGRAM)
-    ifr = ifname + '\x00'*(32-len(ifname))
-    try:
-        ifs = ioctl(s, SIOCGIFMTU, ifr)
-        mtu = struct.unpack('<H', ifs[16:18])[0]
-    except Exception as e:
-        logging.warning("Cannot find the MTU of %s. Will use 1500", ifname)
-        mtu = 1500
-    return mtu
-
-
-def launch_command(command, stderr=None):
-    """
-    If the script is launched in debug mode, just prints the command.
-    Otherwise, starts it with subprocess.call()
-    """
-    if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
-        logging.debug(" ".join(command))
-    else:
-        r = subprocess.call(command, stderr=stderr)
-        if r != 0:
-            if stderr == subprocess.DEVNULL:
-                return
-            logging.error(" ".join(command))
+from pyqos.tools import launch_command
+from pyqos.decorators import multiple_interfaces
 
 
 @multiple_interfaces
-def tc_qdisc(interface, action, algorithm, handle=None, parent=None,
-             stderr=None, *args, **kwargs):
+def qdisc(interface, action, algorithm=None, handle=None, parent=None,
+          stderr=None, dryrun=False, *args, **kwargs):
     """
     Add/change/replace/replace qdisc
 
@@ -62,17 +28,17 @@ def tc_qdisc(interface, action, algorithm, handle=None, parent=None,
         command += ["parent", parent]
     if handle is not None:
         command += ["handle", str(handle)]
-    command.append(algorithm)
+    if algorithm is not None:
+        command.append(algorithm)
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
 
-    launch_command(command, stderr)
+    launch_command(command, stderr, dryrun)
 
 
 @multiple_interfaces
-def qdisc_add(interface, handle, algorithm, parent=None, *args,
-              **kwargs):
+def qdisc_add(interface, handle, algorithm, parent=None, *args, **kwargs):
     """
     Add qdisc
 
@@ -84,12 +50,11 @@ def qdisc_add(interface, handle, algorithm, parent=None, *args,
     :param handle: handle parameter for tc
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return tc_qdisc(interface, "add", algorithm, handle, parent, *args,
-                    **kwargs)
+    return qdisc(interface, "add", algorithm, handle, parent, *args, **kwargs)
 
 
 @multiple_interfaces
-def qdisc_del(interface, algorithm, handle=None, parent=None, *args,
+def qdisc_del(interface, algorithm=None, handle=None, parent=None, *args,
               **kwargs):
     """
     Delete qdisc
@@ -102,12 +67,12 @@ def qdisc_del(interface, algorithm, handle=None, parent=None, *args,
     :param handle: handle parameter for tc (default: None)
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return tc_qdisc(interface, "delete", algorithm, handle, parent, *args,
-                    **kwargs)
+    return qdisc(interface, "delete", algorithm, handle, parent, *args,
+                 **kwargs)
 
 
 @multiple_interfaces
-def qdisc_show(interface=None, show_format=None):
+def qdisc_show(interface=None, show_format=None, dryrun=False):
     """
     Show qdiscs
 
@@ -128,22 +93,12 @@ def qdisc_show(interface=None, show_format=None):
     command += ["qdisc", "show"]
     if interface is not None:
         command += ["dev", interface]
-    launch_command(command)
-
-
-def get_child_qdiscid(classid):
-    """
-    Return the id to handle for a child qdisc. By convention, it will take his
-    parent class id
-
-    :param classid: parent class id
-    """
-    return classid[classid.find(":") + 1:]
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
-def tc_class(interface, action, parent, classid=None, algorithm="htb",
-             **kwargs):
+def qos_class(interface, action, parent, classid=None, algorithm="htb",
+              dryrun=False, *args, **kwargs):
     """
     Add/change/replace/replace class
 
@@ -178,11 +133,11 @@ def tc_class(interface, action, parent, classid=None, algorithm="htb",
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
-def class_add(interface, parent, classid, algorithm="htb", **kwargs):
+def qos_class_add(interface, parent, classid, algorithm="htb", **kwargs):
     """
     Add class
 
@@ -196,11 +151,11 @@ def class_add(interface, parent, classid, algorithm="htb", **kwargs):
     :param classid: id for the current class (default: None)
     :param algorithm: algorithm used for this class (default: htb)
     """
-    return tc_class(interface, "add", parent, classid, algorithm, **kwargs)
+    return qos_class(interface, "add", parent, classid, algorithm, **kwargs)
 
 
 @multiple_interfaces
-def class_del(interface, parent, classid=None, algorithm="htb", **kwargs):
+def qos_class_del(interface, parent, classid=None, algorithm="htb", **kwargs):
     """
     Delete class
 
@@ -214,11 +169,11 @@ def class_del(interface, parent, classid=None, algorithm="htb", **kwargs):
     :param classid: id for the current class (default: None)
     :param algorithm: algorithm used for this class (default: htb)
     """
-    return tc_class(interface, "delete", parent, classid, algorithm, **kwargs)
+    return qos_class(interface, "delete", parent, classid, algorithm, **kwargs)
 
 
 @multiple_interfaces
-def class_show(interface, show_format=None):
+def qos_class_show(interface, show_format=None, dryrun=False):
     """
     Show classes
 
@@ -237,12 +192,12 @@ def class_show(interface, show_format=None):
     if show_format is not None:
         command.append(correct_format)
     command += ["class", "show", "dev", interface]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
-def tc_filter(interface, action, prio, handle, flowid, parent=None,
-              protocol=None, **kwargs):
+def filter(interface, action, prio, handle, flowid, parent=None,
+           protocol=None, dryrun=False, *args, **kwargs):
     """
     Add/change/replace/delete filter
 
@@ -264,20 +219,20 @@ def tc_filter(interface, action, prio, handle, flowid, parent=None,
     if parent is not None:
         command += ["parent", parent]
     if protocol is None:
-        tc_filter(interface, action, prio + 1, handle, flowid, parent,
-                  protocol="ipv6", **kwargs)
+        filter(interface, action, prio + 1, handle, flowid, parent,
+               protocol="ipv6", dryrun=dryrun, *args, **kwargs)
         protocol = "ip"
     command += ["protocol", protocol, "prio", str(prio), "handle", str(handle),
                 "fw", "flowid", flowid]
     for i, j in kwargs.items():
         if j is not None:
             command += [str(i), str(j)]
-    launch_command(command)
+    launch_command(command, dryrun=dryrun)
 
 
 @multiple_interfaces
 def filter_add(interface, parent, prio, handle, flowid, protocol=None,
-               **kwargs):
+               *args, **kwargs):
     """
     Add filter
 
@@ -291,13 +246,13 @@ def filter_add(interface, parent, prio, handle, flowid, protocol=None,
     :param flowid: target class
     :param protocol: protocol to filter (default: ip)
     """
-    tc_filter(interface, "add", prio, handle, flowid, parent, protocol,
-              **kwargs)
+    filter(interface, "add", prio, handle, flowid, parent, protocol,
+           *args, **kwargs)
 
 
 @multiple_interfaces
 def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
-               **kwargs):
+               *args, **kwargs):
     """
     Delete filter
 
@@ -311,15 +266,15 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
     :param parent: parent class/qdisc (default: None)
     :param protocol: protocol to filter (default: ip)
     """
-    tc_filter(interface, "add", prio, handle, flowid, parent, protocol,
-              **kwargs)
+    filter(interface, "add", prio, handle, flowid, parent, protocol,
+           *args, **kwargs)
 
 
 @multiple_interfaces
-def filter_show(interface):
+def filter_show(interface, dryrun=False):
     """
     Show filters
 
     :param interface: target interface
     """
-    launch_command(["tc", "filter", "show", "dev", interface])
+    launch_command(["tc", "filter", "show", "dev", interface], dryrun=dryrun)
