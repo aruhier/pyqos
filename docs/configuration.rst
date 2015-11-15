@@ -1,4 +1,4 @@
-.. _user_man_config:
+.. _config:
 
 =============
 Configuration
@@ -11,7 +11,7 @@ of their code has been copied here), and helps you to share global variables
 with all your rules.
 
 If you did not, you should read this part before continue:
-user_man_quickstart_config_.
+:ref:`Split the configuration in its own file <quickstart_config>`.
 
 For this part, we will use this configuration file, originally named `conf.py`,
 as an example::
@@ -33,7 +33,7 @@ as an example::
             "speed": 100000,  # Download speed, for trafic from the Internet
         },
 
-        "GROUP_EXEMPLE": {  # example of a group of interfaces
+        "GROUP_EXAMPLE": {  # example of a group of interfaces
             "tap0": {
                 "name": "tap0",  # real interface name
                 "speed": 10000,  # Speed for trafic from the Internet
@@ -52,7 +52,8 @@ as an example::
     DRYRUN = False
 
 
-.. _user_man_config_needed_var:
+.. _config_needed_var:
+
 Default values
 --------------
 
@@ -67,8 +68,14 @@ A default configuration is already defined in `PyQoS.app`::
     DRYRUN = False
     INTERFACES = {}
 
+Debug and dry-run
+~~~~~~~~~~~~~~~~~
+
 ``DEBUG`` and ``DRYRUN`` are detailed :ref:`here
-<user_man_quickstart_debug_dryrun>`.
+<quickstart_debug_dryrun>`.
+
+Interfaces
+~~~~~~~~~~
 
 ``INTERFACES`` allows you to define different characteristics about the network
 interface you have. It is used by `PyQoS.app` during the application start,
@@ -79,3 +86,45 @@ Each item in ``INTERFACES`` has to be a dictionary, containing at least one key
 ``name`` whose the value corresponds to the interface's real name. You can see
 the keys in ``INTERFACES`` as aliases for your interfaces, which then target to
 their real informations.
+
+You can also define a group of interfaces like this::
+
+    "GROUP_EXAMPLE": {  # example of a group of interfaces
+        "eth0": {
+            "name": "eth0",  # real interface name
+            "speed": 10000,  # Speed for trafic from the Internet
+        },
+        "eth1": {
+            "name": "eth1",  # real interface name
+            "speed": 10000,  # Speed for trafic from the Internet
+        },
+    },
+
+And if you need to add a bit of intelligence in your configuration, like a
+speed of a virtual tunnel that depends on an other interface's speed, you can
+easily do it after the ``INTERFACES`` definition::
+
+    INTERFACES["GROUP_EXEMPLE"]["tap1"]["speed"] = (
+        INTERFACES["public_if"]["speed"] * 0.4
+    )
+
+
+.. _config_custom_var:
+
+Custom variables
+----------------
+
+Of course you are not limited to the default variables, and are free to add
+which variable you need. For example, if you would like to standardize the HTTP
+packets' rate, you can declare in your configuration::
+
+    HTTP_RATE = (40, 1000,)  # rate is 40% of the parent's one, with a minimum
+                             # of 1000kbps
+
+And use it in your rules::
+
+    from pyqos.algorithms.htb import HTBFilterFQCodel
+    from myrules import app
+
+    random_htb_class = HTBFilterFQCodel()
+    random_htb_class.rate = app.config["HTTP_RATE"]

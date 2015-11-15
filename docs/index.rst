@@ -3,11 +3,25 @@
 PyQoS documentation
 ===================
 
+User's Guide
+------------
+
 .. toctree::
     :maxdepth: 2
 
-    user_manual/quickstart
-    user_manual/configuration
+    quickstart
+    configuration
+
+
+API Reference
+-------------
+
+If you are looking for the entire documentation about each class and functions.
+
+.. toctree::
+    :maxdepth: 4
+
+    api/index
 
 
 Indices and tables

@@ -36,8 +36,8 @@ master_doc = 'index'
 project = 'PyQoS'
 copyright = '2015, Anthony25 <Anthony Ruhier>'
 
-version = '1.0'
-release = '1.0 beta'
+version = '0.2.0'
+release = '0.2.0 beta'
 
 language = 'en'
 locale_dirs = ['locale/']

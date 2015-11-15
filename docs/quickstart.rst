@@ -1,4 +1,4 @@
-.. _user_man_quickstart:
+.. _quickstart:
 
 ==========
 Quickstart
@@ -19,9 +19,10 @@ lot easier to debug if you understand what PyQoS does in the backend.
 .. contents:: Table of Contents
    :depth: 3
 
+.. _quickstart_minimal_app:
+
 A minimal application
 ---------------------
-.. _user_man_quickstart_minimal_app:
 
 A more split design will certainly be preferred, but to understand the process,
 this part will be focused on an application written in only one source file.
@@ -96,9 +97,10 @@ For more informations about each algorithm models, you should read the dev_api_
 documentation.
 
 
+.. _quickstart_config:
+
 Split the configuration in its own file
 ---------------------------------------
-.. _user_man_quickstart_config:
 
 The configuration can be split in its own source file, for example
 ``config.py`` which will be in the root of your application::
@@ -131,12 +133,13 @@ or:
 >>> app.config.from_pyfile("config.py")
 
 You can read :ref:`the documentation related to the configuration
-<user_man_config>` for more informations.
+<config>` for more informations.
 
+
+.. _quickstart_debug_dryrun:
 
 Debug mode and dry-run
 ----------------------
-.. _user_man_quickstart_debug_dryrun:
 
 As PyQoS uses tc as backend, enabling the debug mode allows you to see which
 commands are run. You can also enable the dry run mode, that automatically
@@ -160,9 +163,10 @@ And you can also do it when you are calling your program::
 These three methods are equivalents.
 
 
+.. _parental:
+
 Parental
 --------
-.. _user_man_parental:
 
 Classful algorithms can have a parent and children, to construct an entire
 branch of rules that share some attributes as the network interface, the prefix
