@@ -93,8 +93,8 @@ You can test it by running ``python3 qos_rules.py -D start``, which will
 trigger the dry-run mode, and prints the tc commands that would normally be
 applied.
 
-For more informations about each algorithm models, you should read the dev_api_
-documentation.
+For more informations about each algorithm models, you should read the
+:ref:`API documentation <api_algorithms>`.
 
 
 .. _quickstart_config:

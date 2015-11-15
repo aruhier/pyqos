@@ -1,4 +1,4 @@
-.. _api_algorithms:
+.. _api_global:
 
 General documentation
 =====================
