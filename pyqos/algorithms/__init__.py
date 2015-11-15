@@ -70,14 +70,14 @@ class _BasicQDisc():
             self = obj
         return self._setter_attr_shared_with_parents("id", value)
 
-    #: qdisc id
-    id = property(_get_id, _set_id)
-
     def _get_interface(self, obj=None):
         return self._getter_attr_shared_with_parents("interface")
 
     def _set_interface(self, obj=None, value=None):
         return self._setter_attr_shared_with_parents("interface", value)
+
+    #: qdisc id
+    id = property(_get_id, _set_id)
 
     #: interface linked to this qdisc
     interface = property(_get_interface, _set_interface)

@@ -9,6 +9,10 @@ Classful Queuing Disciplines
 HTB
 ---
 
+HTB is a type of QDisc which allows to set a rate and burst, with priorities
+between classes. You can get more informations `here
+<https://en.wikipedia.org/wiki/Token_bucket#Hierarchical_token_bucket>`_.
+
 
 Empty HTB class
 ~~~~~~~~~~~~~~~
