@@ -1,9 +1,10 @@
 QoS framework for Python and Linux
 ==================================
 
-When you are setting a QoS with TC with a shell script, the syntax is not easy
-to read. This framework helps you setting all your rules easily, in a
-hierarchical way.
+When setting a QoS with TC with a shell script, the syntax is not easy to read.
+This framework helps you to set all your rules easily, in a hierarchical way.
+
+Documentation: https://pyqos.readthedocs.org/en/dev/
 
 Dependencies
 ------------
@@ -13,8 +14,7 @@ Dependencies
 Example
 -------
 
-There is an example about how using the framework in the `example` folder. A
-real documentation is being written and will be pushed ASAP.
+There is an example about how using the framework in the `example` folder.
 
 
 Contributors
