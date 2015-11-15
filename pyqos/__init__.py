@@ -8,3 +8,4 @@ logging.basicConfig(
 )
 
 from pyqos.app import PyQoS
+from pyqos import algorithms
