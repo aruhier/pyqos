@@ -2,6 +2,8 @@
 # Author: Anthony Ruhier
 # Declares decorators
 
+from functools import wraps
+
 
 def multiple_interfaces(f):
     """
@@ -10,6 +12,7 @@ def multiple_interfaces(f):
     If the parameter "interface" is a list of multiple interfaces, it will
     execute the function f for each interface
     """
+    @wraps(f)
     def repeat_for_each_interface(interface, *args, **kwargs):
         if type(interface) is not str:
             for i in interface:

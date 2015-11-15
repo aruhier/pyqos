@@ -413,7 +413,7 @@ class HTBFilter(HTBClass):
 
 class HTBFilterFQCodel(HTBFilter):
     """
-    Lazy wrapper to get an HTB class with a filter and a FQCodel qdisc already
+    Lazy wrapper to get a HTB class with a filter and a FQCodel qdisc already
     set
     """
     qdisc = FQCodel
@@ -421,7 +421,7 @@ class HTBFilterFQCodel(HTBFilter):
 
 class HTBFilterPFIFO(HTBFilter):
     """
-    Lazy wrapper to get an HTB class with a filter and a PFIFO qdisc already
+    Lazy wrapper to get a HTB class with a filter and a PFIFO qdisc already
     set
     """
     qdisc = PFIFO
@@ -429,6 +429,6 @@ class HTBFilterPFIFO(HTBFilter):
 
 class HTBFilterSFQ(HTBFilter):
     """
-    Lazy wrapper to get an HTB class with a filter and a SFQ qdisc already set
+    Lazy wrapper to get a HTB class with a filter and a SFQ qdisc already set
     """
     qdisc = SFQ

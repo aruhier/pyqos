@@ -63,14 +63,18 @@ class Config(dict):
         """
         Updates the values from the given object.  An object can be of one
         of the following two types:
-        -   a string: in this case the object with that name will be imported
-        -   an actual object reference: that object is used directly
+
+        - a string: in this case the object with that name will be imported
+        - an actual object reference: that object is used directly
+
         Objects are usually either modules or classes.
         Just the uppercase variables in that object are stored in the config.
         Example usage::
+
             app.config.from_object('yourapplication.default_config')
             from yourapplication import default_config
             app.config.from_object(default_config)
+
         You should not use this function to load the actual configuration but
         rather configuration defaults.  The actual config should be loaded
         with :meth:`from_pyfile` and ideally from a location not within the

@@ -19,7 +19,7 @@ with open(path.join(here, "README.mkd"), encoding="utf-8") as f:
 
 setup(
     name="pyqos",
-    version="1.0",
+    version="0.2.0",
 
     description="Framework that helps setting a QoS on Linux",
     long_description=long_description,
