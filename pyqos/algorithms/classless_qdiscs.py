@@ -17,7 +17,7 @@ class FQCodel(_BasicQDisc):
     #: is the acceptable minimum standing/persistent queue delay
     target = None
     #: is used to ensure that the measured minimum delay does not become too
-    #  stale
+    #: stale
     interval = None
     #: is the number of bytes used as 'deficit' in the fair queuing algorithm
     codel_quantum = None

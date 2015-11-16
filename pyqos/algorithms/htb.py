@@ -59,6 +59,33 @@ class EmptyHTBClass(_BasicQDisc):
     #: children class which will be attached to this class
     children = None
 
+    #: If rate is an integer, will be used directly. Can also be a tupple to
+    #: set a relative rate, equals to a % of the parent class rate:
+    #: ``(percentage, rate_min, rate_max)``. The root class cannot have a
+    #: relative rate.
+    #: Will be replaced by a property at init
+    rate = None
+
+    #: If ceil is an integer, will be used directly. Can also
+    #: be a tupple to set a relative ceil, equals to a % of the parent class
+    #: ceil: ``(percentage, ceil_min, ceil_max)``. If the parent has no ceil
+    #: defined, a relative ceil will use the parent's rate instead. The root
+    #: class cannot have a relative ceil.
+    #: Will be replaced by a property at init
+    ceil = None
+
+    #: Burst can be a callback or a fixed value
+    #:
+    #: If _burst is an integer, its value will be returned directly.
+    #: Otherwise, if it is a tuple, it will be considered as a callback.
+    burst = None
+
+    #: Cburst can be a callback or a fixed value
+    #:
+    #: If _burst is an integer, its value will be returned directly.
+    #: Otherwise, if it is a tuple, it will be considered as a callback.
+    cburst = None
+
     def _compute_speeds(self, attr):
         """
         Compute the attribute value if it's relative
@@ -151,11 +178,6 @@ class EmptyHTBClass(_BasicQDisc):
     def _get_ceil(self, obj=None):
         """
         Getter for ceil
-
-        If _ceil is an integer, will be used directly. Can also be a
-        tupple to set a relative ceil, equals to a % of the parent class ceil:
-        (percentage, ceil_min, ceil_max). The root class cannot have a relative
-        ceil.
         """
         if obj is not None:
             self = obj
@@ -165,7 +187,6 @@ class EmptyHTBClass(_BasicQDisc):
     def _set_ceil(self, obj=None, value=None):
         """
         Setter for ceil
-
         """
         if obj is not None:
             self = obj
@@ -201,10 +222,7 @@ class EmptyHTBClass(_BasicQDisc):
 
     def _get_burst(self, obj=None):
         """
-        Burst can be a callback or a fixed value
-
-        If _burst is an integer, its value will be returned directly.
-        Otherwise, if it is a tuple, it will be considered as a callback.
+        Getter for burst
         """
         if obj is not None:
             self = obj
@@ -217,10 +235,7 @@ class EmptyHTBClass(_BasicQDisc):
 
     def _get_cburst(self, obj=None):
         """
-        CBurst can be a callback or a fixed value
-
-        If _burst is an integer, its value will be returned directly.
-        Otherwise, if it is a tuple, it will be considered as a callback.
+        Getter for cburst
         """
         if obj is not None:
             self = obj
@@ -230,27 +245,6 @@ class EmptyHTBClass(_BasicQDisc):
         if obj is not None:
             self = obj
         self._cburst = value
-
-    #: If rate is an integer, will be used directly. Can also
-    #: be a tupple to set a relative rate, equals to a % of the parent class
-    #: rate: ``(percentage, rate_min, rate_max)``. The root class cannot have a
-    #: relative rate.
-    rate = property(_get_rate, _set_rate)
-
-    #: If ceil is an integer, will be used directly. Can also
-    #: be a tupple to set a relative ceil, equals to a % of the parent class
-    #: ceil: ``(percentage, ceil_min, ceil_max)``. If the parent has no ceil
-    #: defined, a relative ceil will use the parent's rate instead.  The root
-    #: class cannot have a relative ceil.
-    ceil = property(_get_ceil, _set_ceil)
-
-    #: If burst is an integer, its value will be returned directly.
-    #  Otherwise, if it is a tuple, it will be considered as a callback.
-    burst = property(_get_burst, _set_burst)
-
-    #: If cburst is an integer, its value will be returned directly.
-    #: Otherwise, if it is a tuple, it will be considered as a callback.
-    cburst = property(_get_cburst, _set_cburst)
 
     def _add_class(self):
         pass
