@@ -92,8 +92,13 @@ class _BasicQDisc():
         without the need of overriding __init__
         """
         def set_property(attribute):
+            cls = type(self)
+            if not hasattr(cls, "__perinstance"):
+                cls = type(cls.__name__, (cls,), {})
+                cls.__perinstance = True
+                self.__class__ = cls
             setattr(
-                self.__class__, attribute,
+                cls, attribute,
                 property(
                     getattr(self, "_get_" + attribute),
                     getattr(self, "_set_" + attribute)
