@@ -117,14 +117,14 @@ class PyQoS():
         Init argparse objects
         """
         parser = argparse.ArgumentParser(
-            description="Script to set, show or delete QoS rules with TC"
+            description="Tool to set, show or delete QoS rules on Linux"
         )
 
         # Start/Stop/Show command
         sp_action = parser.add_subparsers()
         sp_start = sp_action.add_parser("start", help="set QoS rules")
-        sp_stop = sp_action.add_parser("stop", help="Remove all QoS rules")
-        sp_show = sp_action.add_parser("show", help="Show QoS rules")
+        sp_stop = sp_action.add_parser("stop", help="remove all QoS rules")
+        sp_show = sp_action.add_parser("show", help="show QoS rules")
 
         # Set function to call for each options
         sp_start.set_defaults(func=self.apply_qos)
@@ -132,9 +132,9 @@ class PyQoS():
         sp_show.set_defaults(func=self.show_qos)
 
         # Debug option
-        parser.add_argument('-d', '--debug', help="Set the debug level",
+        parser.add_argument('-d', '--debug', help="set the debug level",
                             dest="debug", action="store_true")
-        parser.add_argument('-D', '--dryrun', help="Dry run",
+        parser.add_argument('-D', '--dryrun', help="dry run",
                             dest="dryrun", action="store_true")
 
         self.arg_parser = parser
