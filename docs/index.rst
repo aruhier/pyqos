@@ -11,6 +11,7 @@ User's Guide
 
     quickstart
     configuration
+    tutorial/index
 
 
 API Reference
