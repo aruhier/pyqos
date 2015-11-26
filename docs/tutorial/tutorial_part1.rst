@@ -45,7 +45,8 @@ Change the interfaces name (`eth0` and `eth1`) depending of your setup. Here,
 is routed, and ``lan_if`` corresponds to the network interface where the LAN
 is. In case you have sub interfaces on ``lan_if``, you can let the real
 interface name so all your subnets will share the same bandwidth (defined in
-``speed``).
+``speed``). However, you are also shaping the intervlan routing, so you have to
+cheat a bit to avoid this secondary effect.
 
 Save it as ``config.py`` in your application root directory.
 
