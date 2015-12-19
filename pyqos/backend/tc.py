@@ -197,7 +197,7 @@ def qos_class_show(interface, show_format=None, dryrun=False):
 
 @multiple_interfaces
 def filter(interface, action, prio, handle, flowid, parent=None,
-           protocol=None, dryrun=False, *args, **kwargs):
+           protocol="all", dryrun=False, *args, **kwargs):
     """
     Add/change/replace/delete filter
 
@@ -210,18 +210,11 @@ def filter(interface, action, prio, handle, flowid, parent=None,
     :param handle: filter id
     :param flowid: target class
     :param parent: parent class/qdisc (default: None)
-    :param protocol: protocol to filter. Use ipv6 for IPv6 (default: ip and
-                     ipv6). WARNING: Be careful when not setting the protocol,
-                     the priority has to be different between ipv6 and ip so
-                     the function will just apply "prio + 1" for ipv6.
+    :param protocol: protocol to filter. (default: "all")
     """
     command = ["tc", "filter", action, "dev", interface]
     if parent is not None:
         command += ["parent", parent]
-    if protocol is None:
-        filter(interface, action, prio + 1, handle, flowid, parent,
-               protocol="ipv6", dryrun=dryrun, *args, **kwargs)
-        protocol = "ip"
     command += ["protocol", protocol, "prio", str(prio), "handle", str(handle),
                 "fw", "flowid", flowid]
     for i, j in kwargs.items():
@@ -231,7 +224,7 @@ def filter(interface, action, prio, handle, flowid, parent=None,
 
 
 @multiple_interfaces
-def filter_add(interface, parent, prio, handle, flowid, protocol=None,
+def filter_add(interface, parent, prio, handle, flowid, protocol="all",
                *args, **kwargs):
     """
     Add filter
@@ -244,14 +237,14 @@ def filter_add(interface, parent, prio, handle, flowid, protocol=None,
     :param prio: priority
     :param handle: filter id
     :param flowid: target class
-    :param protocol: protocol to filter (default: ip)
+    :param protocol: protocol to filter (default: "all")
     """
     filter(interface, "add", prio, handle, flowid, parent, protocol,
            *args, **kwargs)
 
 
 @multiple_interfaces
-def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
+def filter_del(interface, prio, handle, flowid, parent=None, protocol="all",
                *args, **kwargs):
     """
     Delete filter
@@ -264,7 +257,7 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol=None,
     :param handle: filter id
     :param flowid: target class
     :param parent: parent class/qdisc (default: None)
-    :param protocol: protocol to filter (default: ip)
+    :param protocol: protocol to filter (default: "all")
     """
     filter(interface, "add", prio, handle, flowid, parent, protocol,
            *args, **kwargs)
