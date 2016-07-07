@@ -1,95 +1,20 @@
-QoS with TC and Python
-======================
+QoS framework for Python and Linux
+==================================
 
-When you are setting a QoS with TC with a shellscript, the syntax is not easy
-to read. This tool tries to give a better way to interact with TC.
+When setting a QoS with TC with a shell script, the syntax is not easy to read.
+This framework helps you to set all your rules easily, in a hierarchical way.
+
+Documentation: https://pyqos.readthedocs.org/en/dev/
 
 Dependencies
 ------------
-  * python 2.7 or 3.4 (it certainly works with prior versions, just not tested)
+  * python 3.4 (it certainly works with prior versions, just not tested)
 
 
-Configuration
--------------
+Example
+-------
 
-Copy the default configuration file `config.py.default` as `config.py`.
-<b>Please do not modify or remove `config.py.default` if you cloned this
-repository.  Always do your modifications in config.py.</b> Then modify
-`config.py` for your setup (documentation is inside).
-
-
-Usage
------
-
-QoS rules are is the `rules` folder. It doesn't exist from scratch, but you can
-copy the `pythonic_rules.example` or `tree_rules.example` as `rules`, where
-there are some examples corresponding to a basic setup.
-
-There are two global ways to define rules:
- * A pythonic way, based on extend of built-in classes oriented for the QoS.
-   Rules are written in real python code, and allows you to bring an
-   "intelligence" to your rules, with variables and custom algorithm. More
-   tested as it was the 1st implemented method.
- * A more intuitive configuration file with a custom syntax. It brings less
-   features than the pythonic way, but it is less verbose and clearer. More
-   adapted in most cases.
-
-
-When your rules are created, just run `qos.py` :
-```
-python3 qos.py [-h] [-d] [-p | -t] {start,stop,show} ...
-
-Script to set, show or delete QoS rules with TC
-
-positional arguments:
-  {start,stop,show}
-    start            set QoS rules
-    stop             Remove all QoS rules
-    show             Show QoS rules
-
-optional arguments:
-  -h, --help         show this help message and exit
-  -d, --debug        Set the debug level
-  -p, --pythonic     Use pythonic rules (default)
-  -t, --tree         Use tree rules
-```
-
-Defining rules
---------------
-
-#### Pythonic rules
-
-This is the default method for now, it is the most tested as it was the first
-one implemented.
-
-It allows you to code your rules, based on the extent of built-in classes. As
-it is real python code, you can easily define variables and implement
-algorithms in your rules.
-
-The source file `tools.py` contains all the useful functions for rules, which
-are documented with docstrings. `built_in_classes` contains different classes
-you can inherit.
-
-Rules are defined in the `rules` folder, and applied by calling the
-`apply_rules` in `rules/__init__.py`. To see as it works, an example is
-available in the `pythonic_rules.example` folder.
-
-
-#### Tree rules
-
-It allows to easily define your rules hierarchy by bloc. It brings a more
-intuitive way to define your QoS rules, and is more adapted for a simple
-configuration (for now). This method do not bring a lot of feature for now, but
-it is in heavy development.
-
-Rules are defined in the `rules/main` file. To see as it works, an example is
-available in the `tree_rules.example` folder.
-
-Planned features:
- * Include another configuration file
- * Hierarchy not limited to one child
- * Function calls
- * Define constants
+There is an example about how using the framework in the `example` folder.
 
 
 Contributors
@@ -97,6 +22,12 @@ Contributors
 
  * [Anthony Ruhier](https://github.com/Anthony25)
  * [Thomas Gagneret](https://github.com/tgagneret)
+
+
+Special thanks
+--------------
+ * [Flask Project:](https://github.com/mitsuhiko/flask) Some parts about the
+    application and configuration were inspired a lot from it.
 
 
 Readings about tc
