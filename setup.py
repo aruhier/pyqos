@@ -24,7 +24,7 @@ setup(
     description="Framework that helps setting a QoS on Linux",
     long_description=long_description,
 
-    url="https://github.com/Anthony25/python_tc_qos",
+    url="https://github.com/Anthony25/pyqos",
     author="Anthony25 <Anthony Ruhier>",
     author_email="anthony.ruhier@gmail.com",
 
