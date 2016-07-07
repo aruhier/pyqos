@@ -32,10 +32,10 @@ setup(
 
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Operating System :: POSIX :: Linux"
-        "Programming Language :: Python :: 3 :: Only"
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3 :: Only",
         "Topic :: System :: Networking",
-        "License :: OSI Approved :: BSD License"
+        "License :: OSI Approved :: BSD License",
     ],
 
     keywords="networking qos linux development",
