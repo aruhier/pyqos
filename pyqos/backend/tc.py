@@ -30,7 +30,7 @@ def qdisc(interface, action, algorithm=None, handle=None, parent=None,
         command += ["handle", str(handle)]
     if algorithm is not None:
         command.append(algorithm)
-    for i, j in kwargs.items():
+    for i, j in sorted(kwargs.items()):
         if j is not None:
             command += [str(i), str(j)]
 
@@ -130,7 +130,7 @@ def qos_class(interface, action, parent, classid=None, algorithm="htb",
                     kwargs[key] = str(int(kwargs[key])) + "k"
                 except:
                     pass
-    for i, j in kwargs.items():
+    for i, j in sorted(kwargs.items()):
         if j is not None:
             command += [str(i), str(j)]
     launch_command(command, dryrun=dryrun)
@@ -216,8 +216,8 @@ def filter(interface, action, prio, handle, flowid, parent=None,
     if parent is not None:
         command += ["parent", parent]
     command += ["protocol", protocol, "prio", str(prio), "handle", str(handle),
-                "fw", "flowid", flowid]
-    for i, j in kwargs.items():
+                "fw", "flowid", str(flowid)]
+    for i, j in sorted(kwargs.items()):
         if j is not None:
             command += [str(i), str(j)]
     launch_command(command, dryrun=dryrun)
@@ -259,7 +259,7 @@ def filter_del(interface, prio, handle, flowid, parent=None, protocol="all",
     :param parent: parent class/qdisc (default: None)
     :param protocol: protocol to filter (default: "all")
     """
-    filter(interface, "add", prio, handle, flowid, parent, protocol,
+    filter(interface, "delete", prio, handle, flowid, parent, protocol,
            *args, **kwargs)
 
 

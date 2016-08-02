@@ -40,5 +40,7 @@ setup(
 
     keywords="networking qos linux development",
     packages=["pyqos", ],
-    install_requires=["argparse", ]
+    install_requires=["argparse", ],
+    setup_requires=['pytest-runner', ],
+    tests_require=['pytest', 'pytest-cov', "pytest-mock", "pytest-xdist"],
 )
