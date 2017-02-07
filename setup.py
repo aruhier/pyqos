@@ -12,17 +12,14 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the README file
-with open(path.join(here, "README.mkd"), encoding="utf-8") as f:
-    long_description = f.read()
-
-
 setup(
     name="pyqos",
     version="0.2.0",
 
     description="Framework that helps setting a QoS on Linux",
-    long_description=long_description,
+    long_description=open(
+        path.join(path.dirname(__file__), "README.mkd")
+    ).read(),
 
     url="https://github.com/Anthony25/pyqos",
     author="Anthony25 <Anthony Ruhier>",
