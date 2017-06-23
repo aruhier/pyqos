@@ -14,7 +14,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name="pyqos",
-    version="0.2.1",
+    version="0.2.2",
 
     description="Framework that helps setting a QoS on Linux",
     long_description=open(
@@ -36,7 +36,7 @@ setup(
     ],
 
     keywords="networking qos linux development",
-    packages=["pyqos", ],
+    packages=["pyqos", "pyqos.algorithms", "pyqos.backend"],
     install_requires=["argparse", ],
     setup_requires=['pytest-runner', ],
     tests_require=['pytest', 'pytest-cov', "pytest-mock", "pytest-xdist"],
