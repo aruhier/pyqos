@@ -246,7 +246,7 @@ class EmptyHTBClass(_BasicQDisc):
             self = obj
         self._cburst = value
 
-    def _add_class(self):
+    def _add_class(self, *args, **kwargs):
         pass
 
     def add_child(self, *args):
