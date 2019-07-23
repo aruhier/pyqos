@@ -162,8 +162,8 @@ class Cake(_BasicQDisc):
 
         tc.qdisc_add(
             self.interface, handle=self.id, algorithm="cake",
-            parent=self.parent.classid if self.parent else None, *qdisc_args,
-            **qdisc_kwargs, dryrun=dryrun,
+            parent=self.parent.classid if self.parent else None,
+            opts_args=qdisc_args, dryrun=dryrun, **qdisc_kwargs
         )
 
     def _build_tc_qdisc_opts(self):
@@ -174,12 +174,16 @@ class Cake(_BasicQDisc):
         }
 
         if self.bandwidth:
-            tc_kwargs["bandwidth"] = "{} kbps".format(self.bandwidth)
+            tc_kwargs["bandwidth"] = "{}kbps".format(self.bandwidth)
         if self.autorate_ingress:
             tc_args.append("autorate-ingress")
         if self.rtt_time is not None:
             tc_kwargs["rtt"] = "{}ms".format(self.rtt_time)
-        for preset in (self.rtt_preset, self.priority_queue_preset):
+
+        presets_args = (
+            self.rtt_preset, self.priority_queue_preset, self.overhead_preset
+        )
+        for preset in presets_args:
             if isinstance(preset, (tuple, list)):
                 tc_args.extend(preset)
             elif preset:

@@ -41,7 +41,8 @@ def qdisc(interface, action, algorithm=None, handle=None, parent=None,
 
 
 @multiple_interfaces
-def qdisc_add(interface, handle, algorithm, parent=None, *args, **kwargs):
+def qdisc_add(interface, handle, algorithm, parent=None, opts_args=None,
+              **kwargs):
     """
     Add qdisc
 
@@ -52,9 +53,11 @@ def qdisc_add(interface, handle, algorithm, parent=None, *args, **kwargs):
     :param algorithm: algorithm used for this leaf (htb, pfifo, sfq, ...)
     :param handle: handle parameter for tc
     :param parent: if is None, the rule will be added as root. (default: None)
+    :param opts_args: list of options without value, to append to the command
     """
     return qdisc(
-        interface, "add", algorithm, handle, parent, opts_args=args, **kwargs
+        interface, "add", algorithm, handle, parent, opts_args=opts_args,
+        **kwargs
     )
 
 

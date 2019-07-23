@@ -46,6 +46,13 @@ HTB filter
    :inherited-members:
 
 
+HTB filter with Cake
+^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: pyqos.algorithms.htb.HTBFilterCake
+   :members:
+
+
 HTB filter with FQCodel
 ^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -4,6 +4,18 @@ Classless Queuing Disciplines
 =============================
 
 
+Cake
+----
+
+.. autoclass:: pyqos.algorithms.classless_qdiscs.Cake
+   :members:
+   :inherited-members:
+
+   .. attribute:: parent
+
+      Parent object
+
+
 FQCodel
 -------
 
