@@ -7,7 +7,7 @@ from pyqos.decorators import multiple_interfaces
 
 @multiple_interfaces
 def qdisc(interface, action, algorithm=None, handle=None, parent=None,
-          stderr=None, dryrun=False, *args, **kwargs):
+          stderr=None, dryrun=False, opts_args=None, **kwargs):
     """
     Add/change/replace/replace qdisc
 
@@ -20,7 +20,9 @@ def qdisc(interface, action, algorithm=None, handle=None, parent=None,
     :param handle: handle parameter for tc (default: None)
     :param parent: if is None, the rule will be added as root. (default: None)
     :param stderr: indicates stderr to use during the tc commands execution
+    :param opts_args: list of options without value, to append to the command
     """
+    opts_args = opts_args or []
     command = ["tc", "qdisc", action, "dev", interface]
     if parent is None:
         command.append("root")
@@ -33,6 +35,7 @@ def qdisc(interface, action, algorithm=None, handle=None, parent=None,
     for i, j in sorted(kwargs.items()):
         if j is not None:
             command += [str(i), str(j)]
+    command.extend(sorted(opts_args))
 
     launch_command(command, stderr, dryrun)
 
@@ -50,7 +53,9 @@ def qdisc_add(interface, handle, algorithm, parent=None, *args, **kwargs):
     :param handle: handle parameter for tc
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return qdisc(interface, "add", algorithm, handle, parent, *args, **kwargs)
+    return qdisc(
+        interface, "add", algorithm, handle, parent, opts_args=args, **kwargs
+    )
 
 
 @multiple_interfaces
@@ -67,8 +72,10 @@ def qdisc_del(interface, algorithm=None, handle=None, parent=None, *args,
     :param handle: handle parameter for tc (default: None)
     :param parent: if is None, the rule will be added as root. (default: None)
     """
-    return qdisc(interface, "delete", algorithm, handle, parent, *args,
-                 **kwargs)
+    return qdisc(
+        interface, "delete", algorithm, handle, parent, opts_args=args,
+        **kwargs
+    )
 
 
 @multiple_interfaces

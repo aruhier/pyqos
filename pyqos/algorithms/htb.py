@@ -7,7 +7,7 @@ from pyqos import tools
 from pyqos.backend import tc
 from pyqos.exceptions import BadAttributeValueException, NoParentException
 from . import _BasicQDisc
-from .classless_qdiscs import FQCodel, PFIFO, SFQ
+from .classless_qdiscs import Cake, FQCodel, PFIFO, SFQ
 
 
 class HTBQdisc(_BasicQDisc):
@@ -410,6 +410,13 @@ class HTBFilter(HTBClass):
         self._add_filter(dryrun=dryrun)
         for child in self.children:
             child.apply(auto_quantum=auto_quantum, dryrun=dryrun)
+
+
+class HTBFilterCake(HTBFilter):
+    """
+    Lazy wrapper to get a HTB class with a filter and a Cake qdisc already set
+    """
+    qdisc = Cake
 
 
 class HTBFilterFQCodel(HTBFilter):

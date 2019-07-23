@@ -124,8 +124,8 @@ class _BasicQDisc():
         if id is not None:
             self.id = id
 
-    def apply(self):
-        raise NotImplemented
+    def apply(self, dryrun=False):
+        raise NotImplementedError()
 
 
 from . import classless_qdiscs, htb
