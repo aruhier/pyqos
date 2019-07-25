@@ -14,7 +14,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name="pyqos",
-    version="0.2.2",
+    version="0.3.0",
 
     description="Framework that helps setting a QoS on Linux",
     long_description=open(
