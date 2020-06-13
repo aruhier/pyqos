@@ -113,8 +113,8 @@ def test_qos_class_htb_rate_ceil(fixture_disable_commands):
     expected_cmd = [
             "tc", "class", "add", "dev", NETIF, "parent", "1:0", "classid",
             "1:10", "htb",
-            "burst", "100k", "cburst", "300k",
-            "ceil", "800kbit", "rate", "400kbit",
+            "burst", str(100 * 1024), "cburst", str(300 * 1024),
+            "ceil", str(800 * 1024), "rate", str(400 * 1024),
     ]
     launch_cmd_spy.assert_called_with(expected_cmd, dryrun=False)
 

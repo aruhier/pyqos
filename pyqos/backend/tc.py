@@ -114,8 +114,7 @@ def qos_class(interface, action, parent, classid=None, algorithm="htb",
 
     **kwargs will be used for specific arguments, depending on the algorithm
     used.
-    Parameters need to be in kbit. If the unit isn't indicated, add it
-    automagically
+    Parameters need to be in kbit or kbytes.
 
     :param action: "add", "replace", "change" or "delete"
     :param interface: target interface
@@ -131,13 +130,13 @@ def qos_class(interface, action, parent, classid=None, algorithm="htb",
         for key in ("rate", "ceil"):
             if key in kwargs.keys():
                 try:
-                    kwargs[key] = str(int(kwargs[key])) + "kbit"
+                    kwargs[key] = int(kwargs[key]) * 1024
                 except:
                     pass
         for key in ("burst", "cburst"):
             if key in kwargs.keys():
                 try:
-                    kwargs[key] = str(int(kwargs[key])) + "k"
+                    kwargs[key] = int(kwargs[key]) * 1024
                 except:
                     pass
     for i, j in sorted(kwargs.items()):
